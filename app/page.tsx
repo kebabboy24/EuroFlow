@@ -46,12 +46,12 @@ function SiteIcon({ name }: { name: IconName }) {
   if (name === "currency") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="9" cy="10" r="5.2" />
-        <circle cx="15" cy="14" r="5.2" />
-        <path d="M6.8 17.3c1.4 1.6 3.3 2.5 5.2 2.5 1.6 0 3.1-.5 4.3-1.4" />
-        <path d="M17.2 6.7C15.8 5.1 13.9 4.2 12 4.2c-1.6 0-3.1.5-4.3 1.4" />
-        <text x="9" y="11.4" textAnchor="middle" fontSize="6.5" fontWeight="900" fill="currentColor" stroke="none">€</text>
-        <text x="15" y="15.6" textAnchor="middle" fontSize="6" fontWeight="900" fill="currentColor" stroke="none">₽</text>
+        <path d="M3.5 15.4h3.1l3.6-2.1c.8-.5 1.8-.7 2.7-.5l2.6.5c.8.2 1.3.9 1.1 1.7-.1.5-.5.9-1 1.1l-3.4.8" />
+        <path d="M6.6 18.6h7.1c1 0 1.9-.3 2.7-.9l4-3.1c.7-.5.8-1.5.3-2.2-.5-.7-1.5-.8-2.2-.3l-2.9 2.1" />
+        <path d="M3.5 12.7v7.2" />
+        <circle cx="14.2" cy="6.9" r="4.1" />
+        <path d="M12.6 6h3M12.6 7.7h2.4" />
+        <path d="M15.6 4.3a3.4 3.4 0 1 0 0 5.2" />
       </svg>
     );
   }
@@ -98,10 +98,6 @@ export default function HomePage() {
     <main className="home-page">
       <section className="container hero">
         <div className="hero-copy">
-          <div className="eyebrow">
-            <span>◇</span>
-            Надёжный обмен валют для людей из СНГ в Европе
-          </div>
           <h1>
             Обменивайте валюту
             <br />

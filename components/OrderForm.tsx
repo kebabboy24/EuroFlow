@@ -4,7 +4,6 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import CurrencyIcon from "@/components/CurrencyIcon";
 import {
-  currencyConfig,
   defaultMethod,
   defaultRegion,
   methodConfig,
@@ -139,9 +138,7 @@ export default function OrderForm({
   const [comment, setComment] = useState("");
   const router = useRouter();
 
-  const sendCurrencyConfig = currencyConfig(sendCurrency);
   const sendMethodConfig = methodConfig(sendCurrency, sendRegion, sendMethod);
-  const receiveCurrencyConfig = currencyConfig(receiveCurrency);
   const receiveMethodConfig = methodConfig(receiveCurrency, receiveRegion, receiveMethod);
   const payoutField = fieldValue(receiveMethodConfig, "payout_details") || {
     label: "Реквизиты получателя",
@@ -306,7 +303,7 @@ export default function OrderForm({
       {step === "send" && (
         <section className="flow-panel">
           <h3>Откуда отправляете</h3>
-          <p>Выберите валюту, страну и банк или способ оплаты.</p>
+          <p>Выберите валюту и банк или способ оплаты.</p>
           <div className="currency-choice-grid">
             {sendCurrencies.map((currency) => (
               <button
@@ -320,15 +317,6 @@ export default function OrderForm({
               </button>
             ))}
           </div>
-
-          <label className="flow-label">
-            Страна / регион
-            <select value={sendRegion} onChange={(event) => setSendRegion(event.target.value)}>
-              {sendCurrencyConfig.regions.map((region) => (
-                <option key={region.id} value={region.id}>{region.name}</option>
-              ))}
-            </select>
-          </label>
 
           <MethodPicker currency={sendCurrency} region={sendRegion} value={sendMethod} onChange={setSendMethod} />
         </section>
@@ -351,15 +339,6 @@ export default function OrderForm({
               </button>
             ))}
           </div>
-
-          <label className="flow-label">
-            Страна / регион
-            <select value={receiveRegion} onChange={(event) => setReceiveRegion(event.target.value)}>
-              {receiveCurrencyConfig.regions.map((region) => (
-                <option key={region.id} value={region.id}>{region.name}</option>
-              ))}
-            </select>
-          </label>
 
           <MethodPicker currency={receiveCurrency} region={receiveRegion} value={receiveMethod} onChange={setReceiveMethod} />
 
