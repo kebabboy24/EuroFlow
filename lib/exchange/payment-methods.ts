@@ -57,10 +57,13 @@ export type PaymentMethod = {
   id: string;
   name: string;
   icon?: string;
+  iconSrc?: string;
   iconKey?: PaymentMethodIconKey;
   iconLabel?: string;
   iconColor?: string;
   iconScale?: number;
+  iconFit?: "contain" | "cover";
+  iconBackground?: string;
   popular?: boolean;
   requiredFields?: RequiredField[];
 };
@@ -128,7 +131,7 @@ export const paymentMethods: CurrencyPaymentConfig[] = [
           { id: "rosselkhozbank", name: "Россельхозбанк", icon: "/banks/rosselkhozbank.svg", iconKey: "rosselkhoz" },
           { id: "sovcombank", name: "Совкомбанк", icon: "/banks/sovcombank.svg", iconKey: "sovcom" },
           { id: "otkritie", name: "Открытие", icon: "/banks/otkritie.svg", iconKey: "otkritie" },
-          { id: "pochtabank", name: "Почта Банк", icon: "/banks/pochtabank.svg", iconKey: "pochtabank" },
+          { id: "pochtabank", name: "Почта Банк", iconSrc: "/banks/pochtabank.png", iconKey: "pochtabank", iconScale: 1 },
           { id: "mtsbank", name: "МТС Банк", icon: "/banks/mts-bank.svg", iconKey: "mts" },
           { id: "ozonbank", name: "Озон Банк", icon: "/banks/ozon.svg", iconKey: "ozon" },
           { id: "yandexbank", name: "Яндекс Банк", icon: "/banks/yandex.svg", iconKey: "yandex" },
@@ -146,12 +149,12 @@ export const paymentMethods: CurrencyPaymentConfig[] = [
         id: "ua",
         name: "Украина",
         methods: [
-          { id: "monobank", name: "Monobank", icon: "/banks/monobank.png", iconKey: "monobank", iconScale: 1.14, popular: true },
-          { id: "privatbank", name: "PrivatBank", icon: "/banks/privatbank.png", iconKey: "privatbank", popular: true },
-          { id: "pumb", name: "PUMB", icon: "/banks/pumb.png", iconKey: "pumb", iconScale: 1.08 },
-          { id: "oschadbank", name: "Oschadbank", icon: "/banks/oschadbank.jpg", iconKey: "oschadbank", iconScale: 1.12 },
-          { id: "raiffeisen_ua", name: "Raiffeisen Ukraine", icon: "/banks/raiffeisen.png", iconKey: "raiffeisen", iconScale: 1.18 },
-          { id: "sensebank", name: "Sense Bank", icon: "/banks/sense-bank.png", iconKey: "sensebank", popular: true },
+          { id: "monobank", name: "Monobank", iconSrc: "/banks/monobank.png", iconKey: "monobank", iconScale: 1.45, popular: true },
+          { id: "privatbank", name: "PrivatBank", iconSrc: "/banks/privatbank.png", iconKey: "privatbank", popular: true },
+          { id: "pumb", name: "PUMB", iconSrc: "/banks/pumb.png", iconKey: "pumb", iconScale: 1.16 },
+          { id: "oschadbank", name: "Oschadbank", iconSrc: "/banks/oschadbank.jpg", iconKey: "oschadbank", iconScale: 1.35 },
+          { id: "raiffeisen_ua", name: "Raiffeisen Ukraine", iconSrc: "/banks/raiffeisen.png", iconKey: "raiffeisen", iconScale: 1.25 },
+          { id: "sensebank", name: "Sense Bank", iconSrc: "/banks/sense-bank.png", iconKey: "sensebank", popular: true },
           otherMethod,
         ],
       },
@@ -165,9 +168,9 @@ export const paymentMethods: CurrencyPaymentConfig[] = [
         id: "kz",
         name: "Казахстан",
         methods: [
-          { id: "kaspi", name: "Kaspi", icon: "/banks/kaspi.png", iconKey: "kaspi", popular: true },
-          { id: "halyk", name: "Halyk", icon: "/banks/halyk.jpg", iconKey: "halyk", popular: true },
-          { id: "forte", name: "Forte", icon: "/banks/forte.webp", iconKey: "forte" },
+          { id: "kaspi", name: "Kaspi", iconSrc: "/banks/kaspi.png", iconKey: "kaspi", popular: true },
+          { id: "halyk", name: "Halyk", iconSrc: "/banks/halyk.jpg", iconKey: "halyk", popular: true },
+          { id: "forte", name: "Forte", iconSrc: "/banks/forte.webp", iconKey: "forte" },
           { id: "jusan", name: "Jusan", iconKey: "jusan" },
           { id: "freedom", name: "Freedom", iconKey: "freedom" },
           otherMethod,
@@ -183,10 +186,10 @@ export const paymentMethods: CurrencyPaymentConfig[] = [
         id: "ge",
         name: "Грузия",
         methods: [
-          { id: "bog", name: "Bank of Georgia", icon: "/banks/bank-of-georgia.png", iconKey: "bog", popular: true },
-          { id: "tbc", name: "TBC Bank", icon: "/banks/tbc-bank.png", iconKey: "tbc", popular: true },
-          { id: "liberty", name: "Liberty Bank", icon: "/banks/liberty-bank.png", iconKey: "liberty", iconScale: 1.08 },
-          { id: "credo", name: "Credo Bank", iconKey: "credo" },
+          { id: "bog", name: "Bank of Georgia", iconSrc: "/banks/bank-of-georgia.png", iconKey: "bog", popular: true },
+          { id: "tbc", name: "TBC Bank", iconSrc: "/banks/tbc-bank.png", iconKey: "tbc", popular: true },
+          { id: "liberty", name: "Liberty Bank", iconSrc: "/banks/liberty-bank.png", iconKey: "liberty", iconScale: 1.1 },
+          { id: "credo", name: "Credo Bank", iconSrc: "/banks/credo-bank.jpg", iconKey: "credo", iconScale: 1.25 },
           otherMethod,
         ],
       },
@@ -201,8 +204,8 @@ export const paymentMethods: CurrencyPaymentConfig[] = [
         name: "Международно",
         methods: [
           { id: "swift_usd", name: "SWIFT", iconKey: "swift", popular: true, requiredFields: [swiftDetails] },
-          { id: "wise_usd", name: "Wise", icon: "/banks/wise.webp", iconKey: "wise", iconScale: 1.12, popular: true, requiredFields: [payoutDetails] },
-          { id: "revolut_usd", name: "Revolut", icon: "/banks/revolut.png", iconKey: "revolut", popular: true, requiredFields: [payoutDetails] },
+          { id: "wise_usd", name: "Wise", iconSrc: "/banks/wise.webp", iconKey: "wise", iconScale: 1.18, popular: true, requiredFields: [payoutDetails] },
+          { id: "revolut_usd", name: "Revolut", iconSrc: "/banks/revolut.png", iconKey: "revolut", iconScale: 1.04, popular: true, requiredFields: [payoutDetails] },
           { id: "bank_transfer_usd", name: "Bank transfer", iconKey: "bankTransfer", requiredFields: [swiftDetails] },
           { id: "cash_usd", name: "Cash pickup", iconKey: "cash", requiredFields: [payoutDetails] },
           otherMethod,
@@ -219,12 +222,12 @@ export const paymentMethods: CurrencyPaymentConfig[] = [
         name: "Европа",
         methods: [
           { id: "iban", name: "IBAN", iconKey: "iban", popular: true, requiredFields: [ibanDetails] },
-          { id: "sepa", name: "SEPA", icon: "/banks/sepa.jpg", iconKey: "sepa", iconScale: 1.18, popular: true, requiredFields: [ibanDetails] },
-          { id: "revolut", name: "Revolut", icon: "/banks/revolut.png", iconKey: "revolut", popular: true, requiredFields: [payoutDetails] },
-          { id: "wise", name: "Wise", icon: "/banks/wise.webp", iconKey: "wise", iconScale: 1.12, popular: true, requiredFields: [payoutDetails] },
-          { id: "erste", name: "Erste Bank", icon: "/banks/erste-bank.png", iconKey: "erste", iconScale: 1.22, requiredFields: [ibanDetails] },
-          { id: "raiffeisen_at", name: "Raiffeisen Austria", icon: "/banks/raiffeisen.png", iconKey: "raiffeisen", iconScale: 1.18, requiredFields: [ibanDetails] },
-          { id: "n26", name: "N26", icon: "/banks/n26.png", iconKey: "n26", requiredFields: [ibanDetails] },
+          { id: "sepa", name: "SEPA", iconSrc: "/banks/sepa.jpg", iconKey: "sepa", iconScale: 1.25, popular: true, requiredFields: [ibanDetails] },
+          { id: "revolut", name: "Revolut", iconSrc: "/banks/revolut.png", iconKey: "revolut", iconScale: 1.04, popular: true, requiredFields: [payoutDetails] },
+          { id: "wise", name: "Wise", iconSrc: "/banks/wise.webp", iconKey: "wise", iconScale: 1.18, popular: true, requiredFields: [payoutDetails] },
+          { id: "erste", name: "Erste Bank", iconSrc: "/banks/erste-bank.png", iconKey: "erste", iconScale: 1.24, requiredFields: [ibanDetails] },
+          { id: "raiffeisen_at", name: "Raiffeisen Austria", iconSrc: "/banks/raiffeisen.png", iconKey: "raiffeisen", iconScale: 1.25, requiredFields: [ibanDetails] },
+          { id: "n26", name: "N26", iconSrc: "/banks/n26.png", iconKey: "n26", iconScale: 1.04, requiredFields: [ibanDetails] },
           { id: "card_eur", name: "Карта", iconKey: "card", requiredFields: [cardDetails] },
           { ...otherMethod, requiredFields: [payoutDetails] },
         ],

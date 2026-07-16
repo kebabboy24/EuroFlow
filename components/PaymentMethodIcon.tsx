@@ -5,6 +5,8 @@ type MethodIconStyle = CSSProperties & {
   "--method-color": string;
   "--method-bg": string;
   "--method-scale": number;
+  "--method-fit": "contain" | "cover";
+  "--method-image-bg": string;
 };
 
 const fallbackIconMeta = {
@@ -73,15 +75,24 @@ export default function PaymentMethodIcon({ method }: { method: PaymentMethod })
   const color = method.iconColor || meta?.color || "#165DFF";
   const label = method.iconLabel || meta?.label || fallbackInitials(method.name);
   const scale = method.iconScale || 1;
+  const imageSrc = method.iconSrc || method.icon;
+  const imageBackground = method.iconBackground || "#ffffff";
+  const fit = method.iconFit || "contain";
 
   return (
     <span
-      className={method.icon ? "payment-method-icon has-image" : "payment-method-icon has-mark"}
-      style={{ "--method-color": color, "--method-bg": softColor(color), "--method-scale": scale } as MethodIconStyle}
+      className={imageSrc ? "payment-method-icon has-image" : "payment-method-icon has-mark"}
+      style={{
+        "--method-color": color,
+        "--method-bg": softColor(color),
+        "--method-scale": scale,
+        "--method-fit": fit,
+        "--method-image-bg": imageBackground,
+      } as MethodIconStyle}
       aria-hidden="true"
     >
-      {method.icon ? (
-        <img src={method.icon} alt="" />
+      {imageSrc ? (
+        <img src={imageSrc} alt="" />
       ) : (
         <span className="payment-method-mark">{label}</span>
       )}

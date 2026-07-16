@@ -69,7 +69,7 @@ width:100%;background:var(--soft);color:var(--text);border:1px solid var(--borde
   height: 46px;
   display: inline-grid;
   place-items: center;
-  border-radius: 15px;
+  border-radius: 20px;
   background: linear-gradient(145deg, rgba(21,87,255,.12), rgba(18,215,199,.12));
 }
 .brand-euro {
@@ -135,10 +135,10 @@ width:100%;background:var(--soft);color:var(--text);border:1px solid var(--borde
 }
 
 .profile-avatar {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   flex: 0 0 auto;
-  border-radius: 15px;
+  border-radius: 20px;
   overflow: hidden;
   display: grid;
   place-items: center;
@@ -667,8 +667,8 @@ width:100%;background:var(--soft);color:var(--text);border:1px solid var(--borde
 }
 
 .currency-icon-lg {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   font-size: 21px;
 }
 
@@ -1776,12 +1776,12 @@ html[data-theme="dark"] .card.form {
 .payment-method-icon {
   --method-color: var(--primary);
   --method-bg: rgba(21,87,255,.10);
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border-radius: 15px;
+  border-radius: 20px;
   color: var(--method-color);
   background: var(--method-bg);
   box-shadow: inset 0 0 0 1px rgba(123, 139, 170, .16);
@@ -1789,16 +1789,16 @@ html[data-theme="dark"] .card.form {
 }
 
 .payment-method-icon.has-image {
-  background: rgba(255, 255, 255, .94);
+  background: var(--method-image-bg, #ffffff);
 }
 
 .payment-method-icon img {
   width: 76%;
   height: 76%;
-  max-width: 76%;
-  max-height: 76%;
+  max-width: 82%;
+  max-height: 82%;
   display: block;
-  object-fit: contain;
+  object-fit: var(--method-fit, contain);
   transform: scale(var(--method-scale, 1));
 }
 
@@ -1822,11 +1822,23 @@ html[data-theme="dark"] .payment-method-icon {
 }
 
 html[data-theme="dark"] .payment-method-icon.has-image {
-  background: rgba(255, 255, 255, .96);
+  background: var(--method-image-bg, #ffffff);
 }
 
 html[data-theme="dark"] .payment-method-mark {
   background: rgba(255, 255, 255, .86);
+}
+
+@media (max-width: 760px) {
+  .payment-method-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+  }
+
+  .method-option {
+    min-height: 70px;
+  }
 }
 
 .method-option small {
