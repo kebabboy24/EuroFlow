@@ -121,11 +121,42 @@ export default function HomePage() {
           </div>
         </div>
         <div className="hero-visual" aria-hidden="true">
-          <div className="globe-orbit orbit-one" />
-          <div className="globe-orbit orbit-two" />
-          <div className="globe-dot dot-one" />
-          <div className="globe-dot dot-two" />
-          <div className="globe-dot dot-three" />
+          <svg className="europe-planet" viewBox="0 0 520 520">
+            <defs>
+              <radialGradient id="planetGlow" cx="42%" cy="38%" r="64%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.92" />
+                <stop offset="55%" stopColor="#eaf4ff" stopOpacity="0.64" />
+                <stop offset="100%" stopColor="#cfe3ff" stopOpacity="0.2" />
+              </radialGradient>
+              <linearGradient id="heroAccentGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#1557ff" />
+                <stop offset="100%" stopColor="#12d7c7" />
+              </linearGradient>
+              <clipPath id="planetClip">
+                <circle cx="260" cy="260" r="205" />
+              </clipPath>
+            </defs>
+
+            <circle className="planet-shell" cx="260" cy="260" r="205" />
+            <g clipPath="url(#planetClip)">
+              <circle className="planet-fill" cx="260" cy="260" r="205" />
+              <path className="planet-grid" d="M76 205c82-35 243-44 368-8M64 263c104-30 275-32 395-2M93 324c90 25 242 31 350 5M167 75c-55 112-58 259-8 370M260 54c-22 116-24 287 0 410M354 76c54 112 57 258 9 367" />
+              <path className="europe-land" d="M212 164l33-18 42 9 22 23 38 6 26 30-13 34 27 26-13 45-35 9-25 38-47-4-23-34-40 8-29-28 12-43-29-27 16-38 36-5 4-31Z" />
+              <path className="europe-land soft" d="M167 270l31 5 22 31-12 46-39 17-33-30 6-43 25-26Z" />
+              <path className="europe-land soft" d="M319 126l42 10 34 33-20 24-43-10-27-33 14-24Z" />
+              <path className="coast-line" d="M231 170l-18 38 20 28-16 34 27 34 41-4 25 34 35-36-23-35 22-40-37-11-18-29-34 7-24-20Z" />
+            </g>
+
+            <path className="payment-route route-one" d="M282 225 C365 138 421 123 477 104" />
+            <path className="payment-route route-two" d="M282 225 C390 260 430 325 468 394" />
+            <path className="payment-route route-three" d="M282 225 C195 300 126 329 64 357" />
+            <path className="payment-route route-four" d="M282 225 C246 126 207 85 149 50" />
+            <circle className="payment-hub" cx="282" cy="225" r="8" />
+            <circle className="payment-node node-one" cx="477" cy="104" r="7" />
+            <circle className="payment-node node-two" cx="468" cy="394" r="7" />
+            <circle className="payment-node node-three" cx="64" cy="357" r="7" />
+            <circle className="payment-node node-four" cx="149" cy="50" r="7" />
+          </svg>
         </div>
         <ExchangeCalculator />
       </section>
