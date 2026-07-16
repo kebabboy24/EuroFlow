@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import DashboardIcon from "@/components/DashboardIcon";
 import { createClient } from "@/lib/supabase/server";
 
 function statusLabel(status: string | null) {
@@ -83,16 +84,16 @@ export default async function DashboardPage({
 
           <nav className="sidebar-nav">
             <Link className="active" href="/dashboard">
-              <span>⌂</span> Обзор
+              <span className="nav-icon"><DashboardIcon name="dashboard" /></span> Обзор
             </Link>
             <Link href="/dashboard#orders">
-              <span>▤</span> Мои заявки
+              <span className="nav-icon"><DashboardIcon name="orders" /></span> Мои заявки
             </Link>
             <Link href="/profile">
-              <span>◉</span> Профиль
+              <span className="nav-icon"><DashboardIcon name="profile" /></span> Профиль
             </Link>
             <Link href="/exchange">
-              <span>＋</span> Новая заявка
+              <span className="nav-icon"><DashboardIcon name="newOrder" /></span> Новая заявка
             </Link>
           </nav>
 
@@ -120,13 +121,13 @@ export default async function DashboardPage({
             </div>
 
             <Link className="btn btn-primary dashboard-create" href="/exchange">
-              ＋ Создать заявку
+              <DashboardIcon name="newOrder" /> Создать заявку
             </Link>
           </header>
 
           <div className="stats-grid">
             <article className="stat-card">
-              <span className="stat-icon stat-blue">▤</span>
+              <span className="stat-icon stat-blue"><DashboardIcon name="totalOrders" /></span>
               <div>
                 <small>Всего заявок</small>
                 <strong>{allOrders.length}</strong>
@@ -135,7 +136,7 @@ export default async function DashboardPage({
             </article>
 
             <article className="stat-card">
-              <span className="stat-icon stat-orange">◷</span>
+              <span className="stat-icon stat-orange"><DashboardIcon name="processing" /></span>
               <div>
                 <small>В обработке</small>
                 <strong>{processing}</strong>
@@ -144,7 +145,7 @@ export default async function DashboardPage({
             </article>
 
             <article className="stat-card">
-              <span className="stat-icon stat-green">✓</span>
+              <span className="stat-icon stat-green"><DashboardIcon name="completed" /></span>
               <div>
                 <small>Выполнено</small>
                 <strong>{completed}</strong>
@@ -164,7 +165,7 @@ export default async function DashboardPage({
 
             {!allOrders.length ? (
               <div className="empty-state">
-                <div className="empty-icon">▤</div>
+                <div className="empty-icon"><DashboardIcon name="orders" /></div>
                 <h3>У вас пока нет заявок</h3>
                 <p>
                   Создайте первую заявку, и она появится здесь вместе со статусом
