@@ -71,7 +71,7 @@ export const paymentMethods: CurrencyPaymentConfig[] = [
           { id: "rosselkhozbank", name: "Россельхозбанк", icon: "/banks/rosselkhozbank.svg" },
           { id: "sovcombank", name: "Совкомбанк", icon: "/banks/sovcombank.svg" },
           { id: "otkritie", name: "Открытие", icon: "/banks/otkritie.svg" },
-          { id: "pochtabank", name: "Почта Банк" },
+          { id: "pochtabank", name: "Почта Банк", icon: "/banks/pochtabank.jpeg" },
           { id: "mtsbank", name: "МТС Банк", icon: "/banks/mts-bank.svg" },
           { id: "ozonbank", name: "Озон Банк", icon: "/banks/ozon.svg" },
           { id: "yandexbank", name: "Яндекс Банк", icon: "/banks/yandex.svg" },
