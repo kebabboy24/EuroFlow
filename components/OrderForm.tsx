@@ -405,7 +405,6 @@ export default function OrderForm({
             <div><span>Реквизиты</span><b>{payoutDetails}</b></div>
             <div><span>Ориентировочный курс</span><b>{rate ? `1 ${sendCurrency} = ${rate.rate.toFixed(6)} ${receiveCurrency}` : "Будет уточнён"}</b></div>
             <div><span>К получению</span><b>{formatMoney(receiveAmount, receiveCurrency)}</b></div>
-            <div><span>Маржа</span><b>{rate ? `${rate.marginPercent.toFixed(1)}%` : "По тарифу"}</b></div>
           </div>
 
           <div className="flow-contact-grid">

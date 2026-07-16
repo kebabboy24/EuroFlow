@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { calculateRate } from "@/lib/rates/engine";
 import { insertOrderWithSchemaFallback } from "@/lib/orders/insert-order";
+import { sendTelegramNotification } from "@/lib/telegram/notify";
 
 function clean(value: unknown, max = 300) {
   return String(value ?? "").trim().slice(0, max);
@@ -54,41 +55,37 @@ export async function POST(request: Request) {
     });
     order.receive_amount = Number(rate.receiveAmount.toFixed(2));
     order.rate_value = Number(rate.rate.toFixed(8));
+    const marginPercent = Number(rate.marginPercent.toFixed(1));
 
     const { data, error, omittedColumns } = await insertOrderWithSchemaFallback(supabase, order);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if (!data) return NextResponse.json({ error: "Не удалось сохранить заявку." }, { status: 500 });
 
-    const token = process.env.TELEGRAM_NOTIFY_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
-    if (token && chatId) {
-      const text = [
-        "🟣 Новая заявка EuroFlow",
-        "",
-        `🆔 ${data.id}`,
-        `👤 ${order.full_name}`,
-        `📧 ${order.email}`,
-        `📱 ${order.telegram}`,
-        "",
-        `💸 Клиент отправляет: ${order.send_amount} ${order.send_currency}`,
-        `🏦 Банк/метод отправки: ${order.send_bank || order.send_method || "Не указан"}`,
-        `💶 Клиент получает: ${order.receive_amount} ${order.receive_currency}`,
-        `🏦 Банк/метод получения: ${order.receive_bank || order.receive_method || "Не указан"}`,
-        `💳 Реквизиты получения: ${order.payout_details}`,
-        `📈 Курс: 1 ${order.send_currency} = ${order.rate_value} ${order.receive_currency}`,
-        `🔖 Комментарий к оплате: ${order.payment_reference}`,
-        `📌 Статус: ${order.status}`,
-        order.comment ? `📝 ${order.comment}` : "",
-      ].filter(Boolean).join("\n");
-
-      await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ chat_id: chatId, text }),
-      });
+    const notificationText = [
+      "🟣 Новая заявка EuroFlow",
+      "",
+      `🆔 ${data.id}`,
+      `👤 ${order.full_name}`,
+      `📧 ${order.email}`,
+      `📱 ${order.telegram}`,
+      "",
+      `💸 Клиент отправляет: ${order.send_amount} ${order.send_currency}`,
+      `🏦 Банк/метод отправки: ${order.send_bank || order.send_method || "Не указан"}`,
+      `💶 Клиент получает: ${order.receive_amount} ${order.receive_currency}`,
+      `🏦 Банк/метод получения: ${order.receive_bank || order.receive_method || "Не указан"}`,
+      `💳 Реквизиты получения: ${order.payout_details}`,
+      `📈 Курс: 1 ${order.send_currency} = ${order.rate_value} ${order.receive_currency}`,
+      `📊 Маржа EuroFlow: ${marginPercent}%`,
+      `🔖 Комментарий к оплате: ${order.payment_reference}`,
+      `📌 Статус: ${order.status}`,
+      order.comment ? `📝 ${order.comment}` : "",
+    ].filter(Boolean).join("\n");
+    const telegramNotification = await sendTelegramNotification(notificationText);
+    if (!telegramNotification.ok) {
+      console.error("Telegram order notification failed", telegramNotification);
     }
 
-    return NextResponse.json({ ok: true, order: data, omittedColumns });
+    return NextResponse.json({ ok: true, order: data, omittedColumns, telegramNotification });
   } catch {
     return NextResponse.json({ error: "Ошибка сервера." }, { status: 500 });
   }

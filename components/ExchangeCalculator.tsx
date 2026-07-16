@@ -169,10 +169,6 @@ export default function ExchangeCalculator() {
           </b>
         </div>
         <div>
-          <span>Маржа</span>
-          <b>{rate ? `${rate.marginPercent.toFixed(1)}%` : "..."}</b>
-        </div>
-        <div>
           <span>Источник</span>
           <b>{rate ? sourceLabel[rate.source] : "..."}</b>
         </div>
