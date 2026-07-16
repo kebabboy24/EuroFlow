@@ -147,6 +147,7 @@ export default function OrderForm({
     label: "Реквизиты получателя",
     placeholder: "IBAN, карта, кошелёк или другой реквизит",
   };
+  const showIbanHelp = payoutField.label.toLowerCase().includes("iban");
   const currentStepIndex = stepOrder.indexOf(step);
 
   useEffect(() => {
@@ -363,7 +364,17 @@ export default function OrderForm({
           <MethodPicker currency={receiveCurrency} region={receiveRegion} value={receiveMethod} onChange={setReceiveMethod} />
 
           <label className="flow-label">
-            {payoutField.label}
+            <span className="flow-label-row">
+              {payoutField.label}
+              {showIbanHelp && (
+                <span className="field-help" tabIndex={0} aria-label="Где найти IBAN">
+                  ?
+                  <span className="field-help-tooltip" role="tooltip">
+                    IBAN обычно находится в приложении банка в разделе реквизитов счёта: Account details, Details, IBAN или Реквизиты. Это не номер карты, не CVV и не пароль.
+                  </span>
+                </span>
+              )}
+            </span>
             <textarea
               value={payoutDetails}
               onChange={(event) => setPayoutDetails(event.target.value)}
