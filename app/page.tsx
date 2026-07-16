@@ -1,6 +1,95 @@
 import Link from "next/link";
 import ExchangeCalculator from "@/components/ExchangeCalculator";
 
+type IconName = "plus" | "check" | "plane" | "currency" | "bolt" | "lock" | "percent" | "support";
+
+const trustItems: { icon: IconName; title: string; description: string }[] = [
+  { icon: "bolt", title: "Быстро", description: "Обычно 10–30 минут" },
+  { icon: "lock", title: "Безопасно", description: "Защита данных и средств" },
+  { icon: "percent", title: "Выгодно", description: "P2P-ориентир и маржа" },
+  { icon: "support", title: "Поддержка 24/7", description: "Мы всегда на связи" },
+];
+
+const steps: { number: string; icon: IconName; title: string; description: string }[] = [
+  { number: "01", icon: "plus", title: "Создайте заявку", description: "Укажите сумму, валюту и реквизиты." },
+  { number: "02", icon: "check", title: "Подтвердите детали", description: "Оператор фиксирует курс." },
+  { number: "03", icon: "plane", title: "Отправьте средства", description: "Переведите деньги по реквизитам." },
+  { number: "04", icon: "currency", title: "Получите евро", description: "Перевод поступает на карту или IBAN." },
+];
+
+function SiteIcon({ name }: { name: IconName }) {
+  if (name === "plus") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 5v14M5 12h14" />
+      </svg>
+    );
+  }
+
+  if (name === "check") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m5 12.5 4.2 4.2L19 7" />
+      </svg>
+    );
+  }
+
+  if (name === "plane") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 4 3.8 11.1c-.8.3-.8 1.4.1 1.7l6.2 2.1 2.1 6.2c.3.9 1.4.9 1.7.1L21 4Z" />
+        <path d="m10.1 14.9 4.5-4.5" />
+      </svg>
+    );
+  }
+
+  if (name === "currency") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 7.2h7.8M8 12h6.2M8 16.8h7.8" />
+        <path d="M14.6 4.4a7.6 7.6 0 1 0 0 15.2" />
+        <path d="M17.6 8.2h2.7v8.1h-2.7" />
+      </svg>
+    );
+  }
+
+  if (name === "bolt") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M13 2 4.6 13.2h6.2L10 22l8.6-12.4h-6.4L13 2Z" />
+      </svg>
+    );
+  }
+
+  if (name === "lock") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 10V8a5 5 0 0 1 10 0v2" />
+        <path d="M6.5 10h11A1.5 1.5 0 0 1 19 11.5v7A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5v-7A1.5 1.5 0 0 1 6.5 10Z" />
+      </svg>
+    );
+  }
+
+  if (name === "percent") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m6 18 12-12" />
+        <path d="M7.4 8.5a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8Z" />
+        <path d="M16.6 19.3a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4.5 13.5v-2a7.5 7.5 0 0 1 15 0v2" />
+      <path d="M4.5 13.5h3v5h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z" />
+      <path d="M16.5 13.5h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3v-5Z" />
+      <path d="M15.5 20c-1 .7-2.2 1-3.5 1" />
+    </svg>
+  );
+}
+
 export default function HomePage() {
   return (
     <main className="home-page">
@@ -39,43 +128,29 @@ export default function HomePage() {
       </section>
 
       <section className="container trust-grid" aria-label="Преимущества">
-        <div>
-          <span>↯</span>
-          <b>Быстро</b>
-          <small>Обычно 10–30 минут</small>
-        </div>
-        <div>
-          <span>◇</span>
-          <b>Безопасно</b>
-          <small>Защита данных и средств</small>
-        </div>
-        <div>
-          <span>%</span>
-          <b>Выгодно</b>
-          <small>P2P-ориентир и маржа</small>
-        </div>
-        <div>
-          <span>◉</span>
-          <b>Поддержка 24/7</b>
-          <small>Мы всегда на связи</small>
-        </div>
+        {trustItems.map((item) => (
+          <div key={item.title}>
+            <span className="feature-icon">
+              <SiteIcon name={item.icon} />
+            </span>
+            <b>{item.title}</b>
+            <small>{item.description}</small>
+          </div>
+        ))}
       </section>
 
       <section id="how" className="container section">
         <small className="kicker">Как это работает</small>
         <h2>Четыре понятных шага</h2>
         <div className="steps">
-          {[
-            ["01", "▤", "Создайте заявку", "Укажите сумму, валюту и реквизиты."],
-            ["02", "➤", "Подтвердите детали", "Оператор фиксирует курс."],
-            ["03", "◷", "Отправьте средства", "Переведите деньги по реквизитам."],
-            ["04", "▭", "Получите евро", "Перевод поступает на карту или IBAN."],
-          ].map(([n, i, t, d]) => (
-            <article key={n}>
-              <span>{n}</span>
-              <i>{i}</i>
-              <h3>{t}</h3>
-              <p>{d}</p>
+          {steps.map((step) => (
+            <article key={step.number}>
+              <span>{step.number}</span>
+              <i>
+                <SiteIcon name={step.icon} />
+              </i>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
             </article>
           ))}
         </div>

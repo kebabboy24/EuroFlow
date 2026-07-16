@@ -1716,3 +1716,58 @@ html[data-theme="dark"] .card.form {
     margin-right: 18px;
   }
 }
+
+
+/* Logo and homepage icon updates */
+.brand {
+  flex-shrink: 0;
+}
+
+.brand-logo-img {
+  display: block;
+  width: 164px;
+  height: auto;
+  max-height: 44px;
+  object-fit: contain;
+}
+
+.footer .brand-logo-img {
+  width: 150px;
+}
+
+html[data-theme="dark"] .brand-logo-img {
+  filter: drop-shadow(0 10px 24px rgba(18, 215, 199, .12));
+}
+
+.feature-icon,
+.steps i {
+  color: var(--primary);
+}
+
+.feature-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 12px;
+  border-radius: 15px;
+  background: var(--primary-soft);
+}
+
+.feature-icon svg,
+.steps i svg {
+  width: 27px;
+  height: 27px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 650px) {
+  .brand-logo-img {
+    width: 132px;
+    max-height: 38px;
+  }
+}
