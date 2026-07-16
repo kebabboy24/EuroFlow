@@ -406,7 +406,11 @@ async function createOrder(message: TelegramMessage, payload: OrderPayload) {
   if (error) throw error;
 
   const operatorChatId = process.env.TELEGRAM_CHAT_ID;
-  if (operatorChatId && String(operatorChatId) !== String(message.chat.id)) {
+  const operatorToken = notifyBotToken();
+  const isSameChat = String(operatorChatId) === String(message.chat.id);
+  const isSameBot = operatorToken === clientBotToken();
+
+  if (operatorChatId && operatorToken && !(isSameChat && isSameBot)) {
     await sendTelegramMessage(
       operatorChatId,
       [
@@ -418,7 +422,7 @@ async function createOrder(message: TelegramMessage, payload: OrderPayload) {
         "Статус: Новая",
       ].join("\n"),
       undefined,
-      notifyBotToken()
+      operatorToken
     );
   }
 
