@@ -25,16 +25,16 @@ const euroOption: CurrencyOption[] = [{ code: "EUR", name: "Евро" }];
 
 type RateResponse = {
   rate: number;
+  finalRate: number;
   receiveAmount: number;
-  marginPercent: number;
   source: "binance_p2p" | "bybit_p2p" | "manual_fallback";
   sampledAds: number;
 };
 
 const sourceLabel: Record<RateResponse["source"], string> = {
-  binance_p2p: "Binance P2P",
+  binance_p2p: "P2P market",
   bybit_p2p: "Bybit P2P",
-  manual_fallback: "Manual fallback",
+  manual_fallback: "Manual rate",
 };
 
 export default function ExchangeCalculator() {
@@ -98,7 +98,7 @@ export default function ExchangeCalculator() {
           <small>Новая заявка</small>
           <h2>Создать обмен</h2>
         </div>
-        <span>{loadingRate ? "Обновляем курс" : "P2P rate"}</span>
+        <span>{loadingRate ? "Обновляем курс" : "Курс EuroFlow"}</span>
       </div>
 
       <div className="exchange-field">
@@ -163,7 +163,7 @@ export default function ExchangeCalculator() {
 
       <div className="summary">
         <div>
-          <span>Курс</span>
+          <span>Курс EuroFlow</span>
           <b>
             1 {currency} = {rate ? rate.rate.toFixed(6) : "..."} EUR
           </b>

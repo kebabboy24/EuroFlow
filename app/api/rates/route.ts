@@ -18,9 +18,21 @@ export async function GET(request: Request) {
       direction: direction || undefined,
     });
 
-    return NextResponse.json(rate, {
-      headers: { "Cache-Control": "no-store" },
-    });
+    return NextResponse.json(
+      {
+        from: rate.from,
+        to: rate.to,
+        amount: rate.amount,
+        direction: rate.direction,
+        rate: rate.finalRate,
+        finalRate: rate.finalRate,
+        receiveAmount: rate.receiveAmount,
+        source: rate.source,
+        sampledAds: rate.sampledAds,
+        updatedAt: rate.updatedAt,
+      },
+      { headers: { "Cache-Control": "no-store" } }
+    );
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Rate unavailable" },

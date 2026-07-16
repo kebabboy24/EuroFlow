@@ -15,8 +15,8 @@ import {
 
 type RateResponse = {
   rate: number;
+  finalRate: number;
   receiveAmount: number;
-  marginPercent: number;
   source: "binance_p2p" | "bybit_p2p" | "manual_fallback";
 };
 
@@ -33,9 +33,9 @@ type Step = "send" | "receive" | "amount" | "review" | "instructions";
 const stepOrder: Step[] = ["send", "receive", "amount", "review", "instructions"];
 
 const sourceLabel: Record<RateResponse["source"], string> = {
-  binance_p2p: "Binance P2P",
+  binance_p2p: "P2P market",
   bybit_p2p: "Bybit P2P",
-  manual_fallback: "ручной fallback",
+  manual_fallback: "ручной курс",
 };
 
 function formatMoney(value: number, currency: string) {
@@ -389,7 +389,7 @@ export default function OrderForm({
             <div className="flow-rate-preview">
               <span>Ориентировочно получите</span>
               <strong>{loadingRate ? "Обновляем…" : formatMoney(receiveAmount, receiveCurrency)}</strong>
-              {rate && <small>Курс: 1 {sendCurrency} = {rate.rate.toFixed(6)} {receiveCurrency}</small>}
+              {rate && <small>Курс EuroFlow: 1 {sendCurrency} = {rate.rate.toFixed(6)} {receiveCurrency}</small>}
             </div>
           </div>
           {rateError && <div className="error">{rateError}</div>}
@@ -406,7 +406,8 @@ export default function OrderForm({
             <div><span>Получает</span><b>{receiveCurrency}</b></div>
             <div><span>Способ получения</span><b>{receiveMethodConfig.name}</b></div>
             <div><span>Реквизиты</span><b>{payoutDetails}</b></div>
-            <div><span>Ориентировочный курс</span><b>{rate ? `1 ${sendCurrency} = ${rate.rate.toFixed(6)} ${receiveCurrency}` : "Будет уточнён"}</b></div>
+            <div><span>Курс EuroFlow</span><b>{rate ? `1 ${sendCurrency} = ${rate.rate.toFixed(6)} ${receiveCurrency}` : "Будет уточнён"}</b></div>
+            <div><span>Источник курса</span><b>{rate ? sourceLabel[rate.source] : "Будет уточнён"}</b></div>
             <div><span>К получению</span><b>{formatMoney(receiveAmount, receiveCurrency)}</b></div>
           </div>
 

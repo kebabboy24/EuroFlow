@@ -47,6 +47,10 @@ type OrderPayload = {
   payout_details?: string;
   receive_amount?: number;
   rate_value?: number;
+  base_rate?: number;
+  margin_percent?: number;
+  estimated_profit?: number;
+  rate_source?: "binance_p2p" | "bybit_p2p" | "manual_fallback";
   comment?: string;
 };
 
@@ -97,6 +101,18 @@ function userName(from?: TelegramUser) {
 
 function paymentReference() {
   return `EF-${Date.now().toString(36).toUpperCase()}`;
+}
+
+function formatRate(value?: number) {
+  return Number(value || 0).toLocaleString("ru-RU", {
+    maximumFractionDigits: 8,
+  });
+}
+
+function formatAmount(value: number | undefined, currency = "EUR") {
+  return `${Number(value || 0).toLocaleString("ru-RU", {
+    maximumFractionDigits: currency === "USDT" ? 4 : 2,
+  })} ${currency}`;
 }
 
 function defaultMethodName(currency: string) {
@@ -194,7 +210,7 @@ function orderSummary(payload: OrderPayload, from?: TelegramUser) {
     `Клиент получает: ${payload.receive_amount?.toFixed(2)} ${payload.receive_currency}`,
     `Банк/метод получения: ${payload.receive_bank || payload.receive_method}`,
     `Реквизиты получения: ${payload.payout_details}`,
-    payload.rate_value ? `Курс: 1 ${payload.send_currency} = ${payload.rate_value} ${payload.receive_currency}` : "Курс: будет уточнён",
+    payload.rate_value ? `Курс EuroFlow: 1 ${payload.send_currency} = ${formatRate(payload.rate_value)} ${payload.receive_currency}` : "Курс: будет уточнён",
     payload.comment ? `Комментарий: ${payload.comment}` : "Комментарий: нет",
   ]
     .filter(Boolean)
@@ -361,7 +377,11 @@ async function enrichRate(payload: OrderPayload) {
   return {
     ...payload,
     receive_amount: Number(rate.receiveAmount.toFixed(2)),
-    rate_value: Number(rate.rate.toFixed(8)),
+    rate_value: Number(rate.finalRate.toFixed(8)),
+    base_rate: Number(rate.baseRate.toFixed(8)),
+    margin_percent: Number(rate.marginPercent.toFixed(1)),
+    estimated_profit: Number(rate.estimatedProfit.toFixed(2)),
+    rate_source: rate.source,
   };
 }
 
@@ -417,6 +437,13 @@ async function createOrder(message: TelegramMessage, payload: OrderPayload) {
         `ID: ${data.id}`,
         `Комментарий к оплате: ${reference}`,
         orderSummary(enriched, message.from),
+        "",
+        "Операторская информация:",
+        `Базовый курс: 1 ${order.send_currency} = ${formatRate(enriched.base_rate)} ${order.receive_currency}`,
+        `Курс EuroFlow: 1 ${order.send_currency} = ${formatRate(enriched.rate_value)} ${order.receive_currency}`,
+        `Маржа EuroFlow: ${formatRate(enriched.margin_percent)}%`,
+        `Оценочная прибыль: ${formatAmount(enriched.estimated_profit, order.receive_currency)}`,
+        `Источник курса: ${enriched.rate_source || "manual_fallback"}`,
         "Статус: Новая",
       ].join("\n"),
       undefined,

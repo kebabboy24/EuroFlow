@@ -23,7 +23,7 @@ export default async function ExchangePage({
     amount: Number(amount) || 0,
     direction: "buy_eur",
   });
-  const receive = params.receive || calculated.receiveAmount.toFixed(2);
+  const receive = calculated.receiveAmount.toFixed(2);
 
   return (
     <main className="page">

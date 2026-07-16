@@ -1,4 +1,5 @@
 import { rateConfig, isSupportedCurrency } from "@/lib/rates/config";
+import { applyHiddenMargin, calculateEstimatedProfit } from "@/lib/rates/margin";
 import {
   fetchBinanceP2P,
   fetchBybitP2P,
@@ -14,11 +15,13 @@ export type RateResult = {
   amount: number;
   direction: RateDirection;
   rate: number;
+  finalRate: number;
   receiveAmount: number;
-  marginPercent: number;
-  source: "binance_p2p" | "bybit_p2p" | "manual_fallback";
   baseRate: number;
-  baseUnit: "fiat_per_eur" | "eur_per_unit";
+  baseReceiveAmount: number;
+  marginPercent: number;
+  estimatedProfit: number;
+  source: "binance_p2p" | "bybit_p2p" | "manual_fallback";
   sampledAds: number;
   providerErrors: string[];
   updatedAt: string;
@@ -77,18 +80,6 @@ function pickSample(ads: P2PAd[], tradeType: P2PTradeType) {
   return sample.length ? sample : sorted.slice(0, 3);
 }
 
-function clientRateFromFiatPerEur(
-  fiatPerEur: number,
-  direction: RateDirection,
-  margin: number
-) {
-  if (direction === "buy_eur") {
-    return 1 / (fiatPerEur * (1 + margin));
-  }
-
-  return fiatPerEur * (1 - margin);
-}
-
 function convertEurAmountToTarget(eurAmount: number, target: string) {
   if (target === "EUR") return eurAmount;
   if (!isSupportedCurrency(target)) {
@@ -96,6 +87,68 @@ function convertEurAmountToTarget(eurAmount: number, target: string) {
   }
 
   return eurAmount / rateConfig.manualRatesToEur[target];
+}
+
+function isRateCurrency(value: string) {
+  return value === "EUR" || isSupportedCurrency(value);
+}
+
+function manualBaseRate(from: string, to: string) {
+  if (!isRateCurrency(from) || !isRateCurrency(to)) {
+    throw new Error(`Unsupported rate pair: ${from}/${to}`);
+  }
+
+  if (from === to) return 1;
+  if (isSupportedCurrency(from) && to === "EUR") return rateConfig.manualRatesToEur[from];
+  if (from === "EUR" && isSupportedCurrency(to)) return 1 / rateConfig.manualRatesToEur[to];
+  if (isSupportedCurrency(from) && isSupportedCurrency(to)) {
+    return rateConfig.manualRatesToEur[from] / rateConfig.manualRatesToEur[to];
+  }
+
+  throw new Error(`Unsupported rate pair: ${from}/${to}`);
+}
+
+function buildRateResult({
+  from,
+  to,
+  amount,
+  direction,
+  baseRate,
+  source,
+  sampledAds,
+  providerErrors,
+}: {
+  from: string;
+  to: string;
+  amount: number;
+  direction: RateDirection;
+  baseRate: number;
+  source: RateResult["source"];
+  sampledAds: number;
+  providerErrors: string[];
+}): RateResult {
+  const marginPercent = rateConfig.margin * 100;
+  const finalRate = applyHiddenMargin(baseRate, direction, marginPercent);
+  const { baseReceiveAmount, finalReceiveAmount, estimatedProfit } =
+    calculateEstimatedProfit(amount, baseRate, finalRate);
+
+  return {
+    from,
+    to,
+    amount,
+    direction,
+    rate: finalRate,
+    finalRate,
+    receiveAmount: finalReceiveAmount,
+    baseRate,
+    baseReceiveAmount,
+    marginPercent,
+    estimatedProfit,
+    source,
+    sampledAds,
+    providerErrors,
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 async function p2pRubRate(amount: number, direction: RateDirection) {
@@ -159,76 +212,52 @@ export async function calculateRate({
   const safeAmount = Number.isFinite(amount) && amount > 0 ? amount : 0;
   const resolvedDirection: RateDirection =
     direction || (normalizedFrom === "EUR" ? "sell_eur" : "buy_eur");
-  const margin = rateConfig.margin;
 
   if (normalizedFrom === "RUB") {
     const p2p = await p2pRubRate(safeAmount, "buy_eur");
-    const eurRate = clientRateFromFiatPerEur(p2p.fiatPerEur, "buy_eur", margin);
-    const eurAmount = safeAmount * eurRate;
-    const receiveAmount = convertEurAmountToTarget(eurAmount, normalizedTo);
-    const rate = safeAmount > 0 ? receiveAmount / safeAmount : 0;
+    const eurPerRub = 1 / p2p.fiatPerEur;
+    const baseRate =
+      normalizedTo === "EUR" ? eurPerRub : convertEurAmountToTarget(eurPerRub, normalizedTo);
 
-    return {
+    return buildRateResult({
       from: normalizedFrom,
       to: normalizedTo,
       amount: safeAmount,
       direction: "buy_eur",
-      rate,
-      receiveAmount,
-      marginPercent: margin * 100,
+      baseRate,
       source: p2p.source,
-      baseRate: p2p.fiatPerEur,
-      baseUnit: "fiat_per_eur",
       sampledAds: p2p.sampledAds,
       providerErrors: p2p.providerErrors,
-      updatedAt: new Date().toISOString(),
-    };
+    });
   }
 
   if (normalizedFrom === "EUR" && normalizedTo === "RUB") {
     const p2p = await p2pRubRate(safeAmount, "sell_eur");
-    const rate = clientRateFromFiatPerEur(p2p.fiatPerEur, "sell_eur", margin);
 
-    return {
+    return buildRateResult({
       from: normalizedFrom,
       to: normalizedTo,
       amount: safeAmount,
       direction: "sell_eur",
-      rate,
-      receiveAmount: safeAmount * rate,
-      marginPercent: margin * 100,
-      source: p2p.source,
       baseRate: p2p.fiatPerEur,
-      baseUnit: "fiat_per_eur",
+      source: p2p.source,
       sampledAds: p2p.sampledAds,
       providerErrors: p2p.providerErrors,
-      updatedAt: new Date().toISOString(),
-    };
+    });
   }
 
-  if (!isSupportedCurrency(normalizedFrom)) {
+  if (!isRateCurrency(normalizedFrom) || !isRateCurrency(normalizedTo)) {
     throw new Error(`Unsupported rate pair: ${normalizedFrom}/${normalizedTo}`);
   }
 
-  const baseRate = rateConfig.manualRatesToEur[normalizedFrom];
-  const eurRate = baseRate / (1 + margin);
-  const eurAmount = safeAmount * eurRate;
-  const receiveAmount = convertEurAmountToTarget(eurAmount, normalizedTo);
-  const rate = safeAmount > 0 ? receiveAmount / safeAmount : 0;
-
-  return {
+  return buildRateResult({
     from: normalizedFrom,
     to: normalizedTo,
     amount: safeAmount,
     direction: resolvedDirection,
-    rate,
-    receiveAmount,
-    marginPercent: margin * 100,
+    baseRate: manualBaseRate(normalizedFrom, normalizedTo),
     source: "manual_fallback",
-    baseRate,
-    baseUnit: "eur_per_unit",
     sampledAds: 0,
     providerErrors: [],
-    updatedAt: new Date().toISOString(),
-  };
+  });
 }

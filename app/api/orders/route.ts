@@ -12,6 +12,18 @@ function paymentReference() {
   return `EF-${Date.now().toString(36).toUpperCase()}`;
 }
 
+function formatRate(value: number) {
+  return Number(value || 0).toLocaleString("ru-RU", {
+    maximumFractionDigits: 8,
+  });
+}
+
+function formatAmount(value: number, currency: string) {
+  return `${Number(value || 0).toLocaleString("ru-RU", {
+    maximumFractionDigits: currency === "USDT" ? 4 : 2,
+  })} ${currency}`;
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
@@ -51,10 +63,9 @@ export async function POST(request: Request) {
       from: order.send_currency,
       to: order.receive_currency,
       amount: order.send_amount,
-      direction: "buy_eur",
     });
     order.receive_amount = Number(rate.receiveAmount.toFixed(2));
-    order.rate_value = Number(rate.rate.toFixed(8));
+    order.rate_value = Number(rate.finalRate.toFixed(8));
     const marginPercent = Number(rate.marginPercent.toFixed(1));
 
     const { data, error, omittedColumns } = await insertOrderWithSchemaFallback(supabase, order);
@@ -74,8 +85,10 @@ export async function POST(request: Request) {
       `💶 Клиент получает: ${order.receive_amount} ${order.receive_currency}`,
       `🏦 Банк/метод получения: ${order.receive_bank || order.receive_method || "Не указан"}`,
       `💳 Реквизиты получения: ${order.payout_details}`,
-      `📈 Курс: 1 ${order.send_currency} = ${order.rate_value} ${order.receive_currency}`,
-      `📊 Маржа EuroFlow: ${marginPercent}%`,
+      `📈 Курс EuroFlow: 1 ${order.send_currency} = ${formatRate(rate.finalRate)} ${order.receive_currency}`,
+      `📊 Базовый курс: 1 ${order.send_currency} = ${formatRate(rate.baseRate)} ${order.receive_currency}`,
+      `🧮 Маржа EuroFlow: ${marginPercent}%`,
+      `💰 Оценочная прибыль: ${formatAmount(rate.estimatedProfit, order.receive_currency)}`,
       `🔖 Комментарий к оплате: ${order.payment_reference}`,
       `📌 Статус: ${order.status}`,
       order.comment ? `📝 ${order.comment}` : "",
