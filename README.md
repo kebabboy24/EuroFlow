@@ -44,3 +44,17 @@ npm run dev
 - защищённая админ-панель;
 - аудит безопасности;
 - защита от спама и rate limiting.
+
+
+## Profile and avatar setup
+
+Before using the new profile page, open Supabase SQL Editor and run:
+
+`supabase/profile-and-avatar.sql`
+
+This creates:
+
+- the `profiles` table;
+- Row Level Security policies;
+- the public `avatars` Storage bucket;
+- upload/update/delete policies for each user's own avatar folder.
