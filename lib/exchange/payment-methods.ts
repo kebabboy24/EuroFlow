@@ -10,6 +10,7 @@ export type RequiredField = {
 export type PaymentMethod = {
   id: string;
   name: string;
+  icon?: string;
   popular?: boolean;
   requiredFields?: RequiredField[];
 };
@@ -61,21 +62,21 @@ export const paymentMethods: CurrencyPaymentConfig[] = [
         id: "ru",
         name: "Россия",
         methods: [
-          { id: "sberbank", name: "Сбербанк", popular: true },
-          { id: "tbank", name: "Т-Банк / Тинькофф", popular: true },
-          { id: "alfabank", name: "Альфа-Банк", popular: true },
-          { id: "vtb", name: "ВТБ", popular: true },
-          { id: "raiffeisen_ru", name: "Райффайзен" },
-          { id: "gazprombank", name: "Газпромбанк" },
-          { id: "rosselkhozbank", name: "Россельхозбанк" },
-          { id: "sovcombank", name: "Совкомбанк" },
-          { id: "otkritie", name: "Открытие" },
+          { id: "sberbank", name: "Сбербанк", icon: "/banks/sberbank.svg", popular: true },
+          { id: "tbank", name: "Т-Банк / Тинькофф", icon: "/banks/tbank.svg", popular: true },
+          { id: "alfabank", name: "Альфа-Банк", icon: "/banks/alfabank.svg", popular: true },
+          { id: "vtb", name: "ВТБ", icon: "/banks/vtb.svg", popular: true },
+          { id: "raiffeisen_ru", name: "Райффайзен", icon: "/banks/raiffeisenbank.svg" },
+          { id: "gazprombank", name: "Газпромбанк", icon: "/banks/gazprombank.svg" },
+          { id: "rosselkhozbank", name: "Россельхозбанк", icon: "/banks/rosselkhozbank.svg" },
+          { id: "sovcombank", name: "Совкомбанк", icon: "/banks/sovcombank.svg" },
+          { id: "otkritie", name: "Открытие", icon: "/banks/otkritie.svg" },
           { id: "pochtabank", name: "Почта Банк" },
-          { id: "mtsbank", name: "МТС Банк" },
-          { id: "ozonbank", name: "Озон Банк" },
-          { id: "yandexbank", name: "Яндекс Банк" },
-          { id: "umoney", name: "ЮMoney" },
-          { id: "sbp", name: "СБП", popular: true },
+          { id: "mtsbank", name: "МТС Банк", icon: "/banks/mts-bank.svg" },
+          { id: "ozonbank", name: "Озон Банк", icon: "/banks/ozon.svg" },
+          { id: "yandexbank", name: "Яндекс Банк", icon: "/banks/yandex.svg" },
+          { id: "umoney", name: "ЮMoney", icon: "/banks/yoomoney.svg" },
+          { id: "sbp", name: "СБП", icon: "/banks/sbp.png", popular: true },
           otherMethod,
         ],
       },

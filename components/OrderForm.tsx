@@ -86,7 +86,10 @@ function MethodPicker({
             className={method.id === value ? "method-option active" : "method-option"}
             onClick={() => onChange(method.id)}
           >
-            <span>{method.name}</span>
+            <span className="method-main">
+              {method.icon && <img className="method-icon" src={method.icon} alt="" aria-hidden="true" />}
+              <span>{method.name}</span>
+            </span>
             {method.popular && <small>Популярно</small>}
           </button>
         ))}
