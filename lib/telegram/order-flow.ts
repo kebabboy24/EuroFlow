@@ -41,7 +41,6 @@ type OrderStep =
   | "email"
   | "send_amount"
   | "send_currency"
-  | "receive_amount"
   | "bank_name"
   | "iban"
   | "comment"
@@ -58,7 +57,7 @@ const CURRENCIES = ["RUB", "UAH", "KZT", "GEL", "USDT"];
 
 const stepPrompts: Record<OrderStep, string> = {
   full_name: [
-    "Шаг 1 из 8. Имя и фамилия",
+    "Шаг 1 из 7. Имя и фамилия",
     "",
     "Напишите, пожалуйста, ваше имя и фамилию как в заявке.",
     "Например: Иван Иванов",
@@ -66,43 +65,37 @@ const stepPrompts: Record<OrderStep, string> = {
     "Если передумали, отправьте /cancel.",
   ].join("\n"),
   email: [
-    "Шаг 2 из 8. Email",
+    "Шаг 2 из 7. Email",
     "",
     "Укажите email для связи и подтверждения заявки.",
     "Например: name@example.com",
   ].join("\n"),
   send_amount: [
-    "Шаг 3 из 8. Сумма отправки",
+    "Шаг 3 из 7. Сумма отправки",
     "",
     "Какую сумму вы хотите отправить?",
     "Напишите только число. Например: 50000",
   ].join("\n"),
   send_currency: [
-    "Шаг 4 из 8. Валюта отправки",
+    "Шаг 4 из 7. Валюта отправки",
     "",
     "Выберите валюту, которую вы отправляете.",
     "Доступно: RUB, UAH, KZT, GEL, USDT",
   ].join("\n"),
-  receive_amount: [
-    "Шаг 5 из 8. Сумма получения",
-    "",
-    "Какую сумму вы ожидаете получить в EUR?",
-    "Напишите число. Например: 500",
-  ].join("\n"),
   bank_name: [
-    "Шаг 6 из 8. Банк получателя",
+    "Шаг 5 из 7. Банк получателя",
     "",
     "Укажите банк или сервис, куда нужно отправить EUR.",
     "Например: Revolut, Wise, N26, Sparkasse",
   ].join("\n"),
   iban: [
-    "Шаг 7 из 8. Реквизиты получения",
+    "Шаг 6 из 7. Реквизиты получения",
     "",
     "Укажите IBAN или другие реквизиты для получения EUR.",
     "Не отправляйте PIN, CVV, пароли банка и коды из SMS.",
   ].join("\n"),
   comment: [
-    "Шаг 8 из 8. Комментарий",
+    "Шаг 7 из 7. Комментарий",
     "",
     "Если есть важные детали, напишите их одним сообщением.",
     "Если комментарий не нужен, отправьте /skip.",
@@ -141,7 +134,6 @@ function orderSummary(payload: OrderPayload, from?: TelegramUser) {
     `Email: ${payload.email}`,
     `Telegram: ${telegramHandle(from)}`,
     `Отправляете: ${payload.send_amount} ${payload.send_currency}`,
-    `Получаете: ${payload.receive_amount} EUR`,
     `Банк: ${payload.bank_name}`,
     `Реквизиты: ${payload.iban}`,
     payload.comment ? `Комментарий: ${payload.comment}` : "Комментарий: нет",
@@ -167,7 +159,8 @@ function orderIntroMessage() {
   return [
     "Начинаем оформление заявки.",
     "",
-    "Я попрошу: имя, email, сумму отправки, валюту, сумму получения в EUR, банк и реквизиты.",
+    "Я попрошу: имя, email, сумму отправки, валюту, банк и реквизиты получения.",
+    "Сумму к получению в EUR рассчитает оператор по актуальному курсу.",
     "Заполнение обычно занимает 1-2 минуты.",
     "",
     stepPrompts.full_name,
@@ -248,7 +241,6 @@ function nextStep(step: OrderStep): OrderStep {
     "email",
     "send_amount",
     "send_currency",
-    "receive_amount",
     "bank_name",
     "iban",
     "comment",
@@ -303,7 +295,7 @@ async function createOrder(message: TelegramMessage, payload: OrderPayload) {
     telegram: clean(telegramHandle(message.from), 80),
     send_amount: payload.send_amount,
     send_currency: clean(payload.send_currency, 10),
-    receive_amount: payload.receive_amount,
+    receive_amount: payload.receive_amount || payload.send_amount,
     receive_currency: "EUR",
     bank_name: clean(payload.bank_name, 120),
     iban: clean(payload.iban, 180),
@@ -377,12 +369,6 @@ async function handleStep(message: TelegramMessage, session: TelegramOrderSessio
     } else {
       payload.send_currency = currency;
     }
-  }
-
-  if (session.step === "receive_amount") {
-    const amount = parseAmount(text);
-    if (!amount) errorMessage = "Введите ожидаемую сумму в EUR числом больше нуля. Например: 500";
-    else payload.receive_amount = amount;
   }
 
   if (session.step === "bank_name") {
