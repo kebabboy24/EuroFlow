@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import CurrencyIcon from "@/components/CurrencyIcon";
+import PaymentMethodIcon from "@/components/PaymentMethodIcon";
 import {
   defaultMethod,
   defaultRegion,
@@ -87,7 +88,7 @@ function MethodPicker({
             onClick={() => onChange(method.id)}
           >
             <span className="method-main">
-              {method.icon && <img className="method-icon" src={method.icon} alt="" aria-hidden="true" />}
+              <PaymentMethodIcon method={method} />
               <span>{method.name}</span>
             </span>
             {method.popular && <small>Популярно</small>}
