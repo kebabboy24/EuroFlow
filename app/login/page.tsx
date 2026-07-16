@@ -28,7 +28,7 @@ export default function LoginPage() {
 
   return (
     <main className="auth-shell">
-      <div className="card">
+      <div className="auth-card">
         <div className="small">EuroFlow account</div>
         <h1>Войти</h1>
         <form className="form" onSubmit={submit}>
