@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ExchangeCalculator from "@/components/ExchangeCalculator";
+import HeroGlobe from "@/components/HeroGlobe";
 
 type IconName = "plus" | "check" | "plane" | "currency" | "bolt" | "lock" | "percent" | "support";
 
@@ -116,59 +117,7 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-        <div className="hero-visual" aria-hidden="true">
-          <svg className="europe-planet" viewBox="0 0 620 520">
-            <defs>
-              <radialGradient id="globeSurface" cx="38%" cy="32%" r="70%">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.96" />
-                <stop offset="42%" stopColor="#eef4ff" stopOpacity="0.9" />
-                <stop offset="78%" stopColor="#dfe8ff" stopOpacity="0.54" />
-                <stop offset="100%" stopColor="#cdd8ff" stopOpacity="0.18" />
-              </radialGradient>
-              <linearGradient id="routeGradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#1557ff" />
-                <stop offset="100%" stopColor="#12d7c7" />
-              </linearGradient>
-              <radialGradient id="euroCenterGlow" cx="50%" cy="45%" r="60%">
-                <stop offset="0%" stopColor="#8b8cff" />
-                <stop offset="100%" stopColor="#1557ff" />
-              </radialGradient>
-              <pattern id="globeDots" width="8" height="8" patternUnits="userSpaceOnUse">
-                <circle cx="2" cy="2" r="1.1" fill="#1557ff" opacity="0.18" />
-              </pattern>
-              <clipPath id="globeClip">
-                <circle cx="310" cy="260" r="215" />
-              </clipPath>
-            </defs>
-
-            <ellipse className="planet-shadow" cx="310" cy="490" rx="150" ry="22" />
-            <circle className="planet-rim" cx="310" cy="260" r="215" />
-            <g clipPath="url(#globeClip)">
-              <circle className="planet-surface" cx="310" cy="260" r="215" />
-              <rect className="globe-dot-field" x="82" y="28" width="456" height="456" fill="url(#globeDots)" />
-              <path className="globe-grid" d="M102 206c91-38 292-46 416-8M96 260c113-31 314-31 428 0M122 319c93 33 270 39 388 10M202 55c-68 119-71 291-9 411M310 42c-28 125-30 311 0 438M420 58c67 119 70 286 9 407" />
-              <path className="surrounding-land" d="M158 192l48-23 50 7 23 25-19 35-61 10-47-20 6-34ZM154 280l56 10 34 38-14 50-55 22-49-35 4-52 24-33ZM402 150l58 14 42 37-30 33-58-13-38-42 26-29ZM411 302l74 20 23 49-47 39-66-12-29-49 45-47Z" />
-              <path className="europe-core" d="M258 168l45-20 49 13 24 28 44 6 27 35-20 37 27 31-20 53-45 8-29 41-55-7-28-35-49 11-36-34 14-50-34-33 22-43 44-6 20-33Z" />
-              <path className="europe-detail" d="M274 184l-22 39 26 31-18 39 31 39 50-5 30 38 35-39-25-39 28-46-45-14-22-32-42 10-26-21Z" />
-            </g>
-
-            <path className="payment-arc" d="M310 268 C222 202 181 174 139 168" />
-            <path className="payment-arc" d="M310 268 C207 247 151 246 94 270" />
-            <path className="payment-arc" d="M310 268 C202 320 151 358 111 410" />
-            <path className="payment-arc" d="M310 268 C382 187 436 159 497 151" />
-            <path className="payment-arc" d="M310 268 C420 258 481 286 532 326" />
-            <path className="payment-arc" d="M310 268 C357 361 377 412 382 466" />
-            <circle className="payment-node" cx="139" cy="168" r="8" />
-            <circle className="payment-node" cx="94" cy="270" r="8" />
-            <circle className="payment-node" cx="111" cy="410" r="8" />
-            <circle className="payment-node" cx="497" cy="151" r="8" />
-            <circle className="payment-node" cx="532" cy="326" r="8" />
-            <circle className="payment-node" cx="382" cy="466" r="8" />
-            <circle className="euro-badge-ring" cx="310" cy="268" r="42" />
-            <circle className="euro-badge" cx="310" cy="268" r="31" />
-            <text className="euro-symbol" x="310" y="280" textAnchor="middle">€</text>
-          </svg>
-        </div>
+        <HeroGlobe />
         <ExchangeCalculator />
       </section>
 

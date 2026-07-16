@@ -967,116 +967,165 @@ h1 {
 }
 
 .hero-visual {
+  --globe-core: #ffffff;
+  --globe-mid: #edf5ff;
+  --globe-edge: #cedaff;
+  --globe-dot: rgba(22, 93, 255, .28);
+  --globe-grid: rgba(22, 93, 255, .13);
+  --globe-land: rgba(22, 93, 255, .08);
+  --globe-europe: rgba(22, 93, 255, .34);
+  --route-strong: rgba(22, 93, 255, .78);
+  --route-soft: rgba(18, 215, 199, .68);
   position: absolute;
   z-index: 1;
-  left: 39%;
+  left: 40.5%;
   top: 48px;
-  width: min(650px, 52vw);
-  aspect-ratio: 1.19;
+  width: min(610px, 48vw);
+  aspect-ratio: 1.23;
   pointer-events: none;
-  opacity: .96;
-}
-
-.europe-planet {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  filter: drop-shadow(0 34px 86px rgba(21, 87, 255, .14));
-}
-
-.planet-shadow {
-  fill: rgba(11, 38, 92, .1);
-  filter: blur(8px);
-}
-
-.planet-rim {
-  fill: none;
-  stroke: rgba(21, 87, 255, .1);
-  stroke-width: 18;
-}
-
-.planet-surface {
-  fill: url(#globeSurface);
-}
-
-.globe-dot-field {
   opacity: .9;
 }
 
-.globe-grid {
+.hero-globe {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 28px 70px rgba(22, 93, 255, .12));
+}
+
+.hero-globe-shadow {
+  fill: rgba(11, 38, 92, .08);
+  filter: blur(10px);
+}
+
+.hero-globe-halo {
   fill: none;
-  stroke: rgba(21, 87, 255, .12);
+  stroke: rgba(22, 93, 255, .08);
+  stroke-width: 17;
+}
+
+.hero-globe-surface {
+  fill: url(#efGlobeSurface);
+}
+
+.hero-globe-dots {
+  opacity: .72;
+}
+
+.hero-globe-grid {
+  fill: none;
+  stroke: var(--globe-grid);
+  stroke-width: 1.35;
+}
+
+.hero-globe-land {
+  fill: var(--globe-land);
+  stroke: rgba(22, 93, 255, .13);
+  stroke-width: 1.2;
+}
+
+.hero-globe-land.thin {
+  fill: none;
+  stroke: rgba(22, 93, 255, .16);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.hero-globe-europe {
+  fill: var(--globe-europe);
+  stroke: rgba(22, 93, 255, .42);
+  stroke-width: 1.8;
+}
+
+.hero-globe-coast {
+  fill: none;
+  stroke: rgba(255,255,255,.76);
   stroke-width: 1.4;
-}
-
-.surrounding-land {
-  fill: rgba(21, 87, 255, .07);
-  stroke: rgba(21, 87, 255, .14);
-  stroke-width: 1.3;
-}
-
-.europe-core {
-  fill: rgba(21, 87, 255, .38);
-  stroke: rgba(21, 87, 255, .44);
-  stroke-width: 2;
-}
-
-.europe-detail {
-  fill: none;
-  stroke: rgba(255,255,255,.78);
-  stroke-width: 1.5;
   stroke-dasharray: 3 6;
 }
 
-.payment-arc {
+.hero-route {
   fill: none;
-  stroke: url(#routeGradient);
-  stroke-width: 2.8;
+  stroke: url(#efRouteGradient);
+  stroke-width: 2.35;
   stroke-linecap: round;
-  opacity: .78;
+  opacity: .68;
 }
 
-.payment-node {
-  fill: #7c78ff;
+.hero-route.route-cis {
+  stroke: var(--route-strong);
+}
+
+.hero-route.route-south {
+  stroke: var(--route-soft);
+}
+
+.hero-node {
   stroke: rgba(255,255,255,.94);
-  stroke-width: 4;
-  filter: drop-shadow(0 0 16px rgba(21, 87, 255, .28));
+  stroke-width: 3.4;
+  filter: drop-shadow(0 0 14px rgba(22, 93, 255, .24));
 }
 
-.euro-badge-ring {
-  fill: rgba(21, 87, 255, .16);
-  stroke: rgba(255,255,255,.9);
-  stroke-width: 4;
-  filter: drop-shadow(0 0 24px rgba(21, 87, 255, .28));
+.hero-node.blue {
+  fill: #165dff;
 }
 
-.euro-badge {
-  fill: url(#euroCenterGlow);
-  stroke: rgba(255,255,255,.95);
+.hero-node.cyan {
+  fill: #12d7c7;
+}
+
+.hero-euro-orbit {
+  fill: rgba(22, 93, 255, .12);
+  stroke: rgba(255,255,255,.88);
+  stroke-width: 4;
+  filter: drop-shadow(0 0 24px rgba(22, 93, 255, .26));
+}
+
+.hero-euro-core {
+  fill: url(#efEuroGlow);
+  stroke: rgba(255,255,255,.94);
   stroke-width: 3;
 }
 
-.euro-symbol {
+.hero-euro-symbol {
   fill: #fff;
-  font-size: 41px;
+  font-size: 39px;
   font-weight: 900;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
 html[data-theme="dark"] .hero-visual {
-  opacity: .78;
+  --globe-core: #0b2a55;
+  --globe-mid: #071f42;
+  --globe-edge: #04152c;
+  --globe-dot: rgba(18, 215, 199, .22);
+  --globe-grid: rgba(103, 188, 255, .18);
+  --globe-land: rgba(71, 118, 255, .13);
+  --globe-europe: rgba(75, 103, 255, .42);
+  --route-strong: rgba(82, 129, 255, .92);
+  --route-soft: rgba(18, 215, 199, .84);
+  opacity: .8;
 }
 
-html[data-theme="dark"] .planet-surface {
-  opacity: .52;
+html[data-theme="dark"] .hero-globe {
+  filter: drop-shadow(0 28px 72px rgba(18, 215, 199, .13));
 }
 
-html[data-theme="dark"] .europe-core {
-  fill: rgba(91, 117, 255, .42);
+html[data-theme="dark"] .hero-globe-halo {
+  stroke: rgba(18, 215, 199, .13);
 }
 
-html[data-theme="dark"] .payment-arc {
-  opacity: .86;
+html[data-theme="dark"] .hero-globe-shadow {
+  fill: rgba(0,0,0,.26);
+}
+
+html[data-theme="dark"] .hero-globe-coast {
+  stroke: rgba(179, 225, 255, .34);
+}
+
+html[data-theme="dark"] .hero-node {
+  stroke: rgba(5, 20, 36, .9);
+  filter: drop-shadow(0 0 16px rgba(18, 215, 199, .32));
 }
 
 .exchange-panel {
@@ -1403,9 +1452,10 @@ html[data-theme="dark"] .card.form {
   }
 
   .hero-visual {
-    left: 42%;
-    top: 180px;
-    width: 56vw;
+    left: 48%;
+    top: 150px;
+    width: min(500px, 48vw);
+    opacity: .58;
   }
 
   .exchange-panel {
@@ -1431,7 +1481,27 @@ html[data-theme="dark"] .card.form {
     padding: 34px 0 22px;
   }
 
+  .hero-copy {
+    order: 1;
+  }
+
+  .exchange-panel {
+    order: 2;
+  }
+
   .hero-visual {
+    order: 3;
+    position: relative;
+    left: auto;
+    top: auto;
+    display: block;
+    width: min(100%, 360px);
+    margin: -8px auto 0;
+    opacity: .5;
+  }
+
+  .hero-transfer-lines .hero-route:nth-child(n+4),
+  .hero-transfer-points .hero-node:nth-child(n+4) {
     display: none;
   }
 
