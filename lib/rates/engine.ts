@@ -89,6 +89,15 @@ function clientRateFromFiatPerEur(
   return fiatPerEur * (1 - margin);
 }
 
+function convertEurAmountToTarget(eurAmount: number, target: string) {
+  if (target === "EUR") return eurAmount;
+  if (!isSupportedCurrency(target)) {
+    throw new Error(`Unsupported receive currency: ${target}`);
+  }
+
+  return eurAmount / rateConfig.manualRatesToEur[target];
+}
+
 async function p2pRubRate(amount: number, direction: RateDirection) {
   const cfg = rateConfig.p2p.RUB;
   const tradeType: P2PTradeType = direction === "buy_eur" ? "SELL" : "BUY";
@@ -152,9 +161,12 @@ export async function calculateRate({
     direction || (normalizedFrom === "EUR" ? "sell_eur" : "buy_eur");
   const margin = rateConfig.margin;
 
-  if (normalizedFrom === "RUB" && normalizedTo === "EUR") {
+  if (normalizedFrom === "RUB") {
     const p2p = await p2pRubRate(safeAmount, "buy_eur");
-    const rate = clientRateFromFiatPerEur(p2p.fiatPerEur, "buy_eur", margin);
+    const eurRate = clientRateFromFiatPerEur(p2p.fiatPerEur, "buy_eur", margin);
+    const eurAmount = safeAmount * eurRate;
+    const receiveAmount = convertEurAmountToTarget(eurAmount, normalizedTo);
+    const rate = safeAmount > 0 ? receiveAmount / safeAmount : 0;
 
     return {
       from: normalizedFrom,
@@ -162,7 +174,7 @@ export async function calculateRate({
       amount: safeAmount,
       direction: "buy_eur",
       rate,
-      receiveAmount: safeAmount * rate,
+      receiveAmount,
       marginPercent: margin * 100,
       source: p2p.source,
       baseRate: p2p.fiatPerEur,
@@ -194,12 +206,15 @@ export async function calculateRate({
     };
   }
 
-  if (normalizedTo !== "EUR" || !isSupportedCurrency(normalizedFrom)) {
+  if (!isSupportedCurrency(normalizedFrom)) {
     throw new Error(`Unsupported rate pair: ${normalizedFrom}/${normalizedTo}`);
   }
 
   const baseRate = rateConfig.manualRatesToEur[normalizedFrom];
-  const rate = baseRate / (1 + margin);
+  const eurRate = baseRate / (1 + margin);
+  const eurAmount = safeAmount * eurRate;
+  const receiveAmount = convertEurAmountToTarget(eurAmount, normalizedTo);
+  const rate = safeAmount > 0 ? receiveAmount / safeAmount : 0;
 
   return {
     from: normalizedFrom,
@@ -207,7 +222,7 @@ export async function calculateRate({
     amount: safeAmount,
     direction: resolvedDirection,
     rate,
-    receiveAmount: safeAmount * rate,
+    receiveAmount,
     marginPercent: margin * 100,
     source: "manual_fallback",
     baseRate,

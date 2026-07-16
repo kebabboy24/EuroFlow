@@ -95,14 +95,14 @@ export default function ExchangeCalculator() {
     <section className="exchange-panel">
       <div className="exchange-head">
         <div>
-          <small>Калькулятор</small>
-          <h2>Рассчитайте обмен</h2>
+          <small>Новая заявка</small>
+          <h2>Создать обмен</h2>
         </div>
         <span>{loadingRate ? "Обновляем курс" : "P2P rate"}</span>
       </div>
 
       <div className="exchange-field">
-        <label>Вы отправляете</label>
+        <label>Откуда отправляете</label>
 
         <div className="currency-money-row">
           <CurrencySelect
@@ -140,7 +140,7 @@ export default function ExchangeCalculator() {
       <div className="swap">⇅</div>
 
       <div className="exchange-field">
-        <label>Вы получаете</label>
+        <label>Куда получить</label>
 
         <div className="currency-money-row">
           <CurrencySelect
@@ -189,11 +189,11 @@ export default function ExchangeCalculator() {
           )
         }
       >
-        Создать заявку →
+        Продолжить →
       </button>
 
       <p className="secure">
-        Для RUB курс берется с P2P-рынка и включает маржу EuroFlow.
+        Выберите сумму, затем продолжите оформление заявки по шагам.
       </p>
     </section>
   );

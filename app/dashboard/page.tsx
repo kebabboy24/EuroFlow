@@ -195,7 +195,7 @@ export default async function DashboardPage({
 
                     <div className="order-exchange">
                       <strong>
-                        {order.send_currency} <span>→</span> EUR
+                        {order.send_currency} <span>→</span> {order.receive_currency || "EUR"}
                       </strong>
                       <small>
                         {Number(order.send_amount).toLocaleString("ru-RU")}{" "}
@@ -208,8 +208,8 @@ export default async function DashboardPage({
                     </div>
 
                     <div className="order-bank">
-                      <small>Банк</small>
-                      <strong>{order.bank_name || "Не указан"}</strong>
+                      <small>Получение</small>
+                      <strong>{order.receive_bank || order.bank_name || "Не указано"}</strong>
                     </div>
 
                     <span className={`status-pill ${statusClass(order.status)}`}>

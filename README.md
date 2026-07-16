@@ -6,6 +6,10 @@
 
 Открой SQL Editor в Supabase, вставь содержимое `supabase/schema.sql` и нажми Run.
 
+Для нового пошагового создания заявки также выполни:
+
+`supabase/order-payment-methods.sql`
+
 В Authentication → URL Configuration добавь:
 - Site URL: адрес будущего сайта Vercel
 - Redirect URL: `https://ВАШ-ДОМЕН.vercel.app/**`
@@ -38,7 +42,15 @@ npm run dev
 
 Telegram tokens и Secret key отметь как Sensitive.
 
-## 4. Rate Engine
+## 4. Payment Methods
+
+Список валют, стран, банков и способов оплаты редактируется в:
+
+`lib/exchange/payment-methods.ts`
+
+Структура расширяемая: Currency → Country/Region → Bank/Method → required fields. Для длинных списков банков интерфейс показывает поиск и популярные методы сверху.
+
+## 5. Rate Engine
 
 Калькулятор курса работает через server-side route:
 
@@ -48,7 +60,7 @@ Telegram tokens и Secret key отметь как Sensitive.
 
 Маржа задаётся через `EUROFLOW_RATE_MARGIN_PERCENT` и ограничена диапазоном 5–7%.
 
-## 5. Telegram Bot
+## 6. Telegram Bot
 
 Для заказов через Telegram открой Supabase SQL Editor и выполни:
 
@@ -66,7 +78,7 @@ curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
 
 Если используется два Telegram-бота, webhook подключай к клиентскому боту из `TELEGRAM_BOT_TOKEN`. Уведомления оператору будут отправляться через `TELEGRAM_NOTIFY_BOT_TOKEN`. Если `TELEGRAM_NOTIFY_BOT_TOKEN` не задан, уведомления отправятся через клиентского бота.
 
-## 6. Деплой
+## 7. Деплой
 
 Создай новый GitHub-репозиторий `euroflow-next`, загрузите файлы и импортируй его в Vercel.
 

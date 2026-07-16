@@ -13,6 +13,15 @@ create table if not exists public.orders (
   send_currency text not null,
   receive_amount numeric not null check (receive_amount > 0),
   receive_currency text not null default 'EUR',
+  send_region text,
+  send_method text,
+  send_bank text,
+  receive_region text,
+  receive_method text,
+  receive_bank text,
+  payout_details text,
+  payment_reference text,
+  rate_value numeric,
   bank_name text not null,
   iban text not null,
   comment text,
@@ -35,6 +44,9 @@ on public.orders(user_id, created_at desc);
 
 create index if not exists orders_telegram_chat_id_created_at_idx
 on public.orders(telegram_chat_id, created_at desc);
+
+create index if not exists orders_payment_reference_idx
+on public.orders(payment_reference);
 
 create table if not exists public.telegram_order_sessions (
   chat_id bigint primary key,
