@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { calculateRate } from "@/lib/rates/engine";
+import { insertOrderWithSchemaFallback } from "@/lib/orders/insert-order";
 
 function clean(value: unknown, max = 300) {
   return String(value ?? "").trim().slice(0, max);
@@ -54,8 +55,9 @@ export async function POST(request: Request) {
     order.receive_amount = Number(rate.receiveAmount.toFixed(2));
     order.rate_value = Number(rate.rate.toFixed(8));
 
-    const { data, error } = await supabase.from("orders").insert(order).select().single();
+    const { data, error, omittedColumns } = await insertOrderWithSchemaFallback(supabase, order);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!data) return NextResponse.json({ error: "Не удалось сохранить заявку." }, { status: 500 });
 
     const token = process.env.TELEGRAM_NOTIFY_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -86,7 +88,7 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({ ok: true, order: data });
+    return NextResponse.json({ ok: true, order: data, omittedColumns });
   } catch {
     return NextResponse.json({ error: "Ошибка сервера." }, { status: 500 });
   }

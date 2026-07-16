@@ -3,6 +3,7 @@ import {
   receiveCurrencies,
   sendCurrencies,
 } from "@/lib/exchange/payment-methods";
+import { insertOrderWithSchemaFallback } from "@/lib/orders/insert-order";
 import { calculateRate } from "@/lib/rates/engine";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -397,13 +398,10 @@ async function createOrder(message: TelegramMessage, payload: OrderPayload) {
     status: "Новая",
   };
 
-  const { data, error } = await supabase
-    .from("orders")
-    .insert(order)
-    .select("id")
-    .single();
+  const { data, error } = await insertOrderWithSchemaFallback(supabase, order, "id");
 
   if (error) throw error;
+  if (!data?.id) throw new Error("Order was saved without id.");
 
   const operatorChatId = process.env.TELEGRAM_CHAT_ID;
   const operatorToken = notifyBotToken();
