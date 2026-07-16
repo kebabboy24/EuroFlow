@@ -4,6 +4,7 @@ import type { PaymentMethod, PaymentMethodIconKey } from "@/lib/exchange/payment
 type MethodIconStyle = CSSProperties & {
   "--method-color": string;
   "--method-bg": string;
+  "--method-scale": number;
 };
 
 const fallbackIconMeta = {
@@ -71,11 +72,12 @@ export default function PaymentMethodIcon({ method }: { method: PaymentMethod })
   const meta = method.iconKey ? fallbackIconMeta[method.iconKey] : undefined;
   const color = method.iconColor || meta?.color || "#165DFF";
   const label = method.iconLabel || meta?.label || fallbackInitials(method.name);
+  const scale = method.iconScale || 1;
 
   return (
     <span
       className={method.icon ? "payment-method-icon has-image" : "payment-method-icon has-mark"}
-      style={{ "--method-color": color, "--method-bg": softColor(color) } as MethodIconStyle}
+      style={{ "--method-color": color, "--method-bg": softColor(color), "--method-scale": scale } as MethodIconStyle}
       aria-hidden="true"
     >
       {method.icon ? (
