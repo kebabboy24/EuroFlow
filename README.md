@@ -26,12 +26,32 @@ npm run dev
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SECRET_KEY`
-- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_BOT_TOKEN` — бот, которому пишут клиенты
+- `TELEGRAM_NOTIFY_BOT_TOKEN` — бот, который присылает заявки оператору
 - `TELEGRAM_CHAT_ID`
+- `TELEGRAM_WEBHOOK_SECRET`
 
-Токен Telegram и Secret key отметь как Sensitive.
+Telegram tokens и Secret key отметь как Sensitive.
 
-## 4. Деплой
+## 4. Telegram Bot
+
+Для заказов через Telegram открой Supabase SQL Editor и выполни:
+
+`supabase/telegram-orders.sql`
+
+После деплоя на Vercel подключи webhook:
+
+```bash
+curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  -d "url=https://ВАШ-ДОМЕН.vercel.app/api/telegram/webhook" \
+  -d "secret_token=$TELEGRAM_WEBHOOK_SECRET"
+```
+
+Пользователь создает заявку командой `/order`, бот пошагово собирает данные и сохраняет заявку в `orders`.
+
+Если используется два Telegram-бота, webhook подключай к клиентскому боту из `TELEGRAM_BOT_TOKEN`. Уведомления оператору будут отправляться через `TELEGRAM_NOTIFY_BOT_TOKEN`. Если `TELEGRAM_NOTIFY_BOT_TOKEN` не задан, уведомления отправятся через клиентского бота.
+
+## 5. Деплой
 
 Создай новый GitHub-репозиторий `euroflow-next`, загрузите файлы и импортируй его в Vercel.
 

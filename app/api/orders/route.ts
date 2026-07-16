@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     const { data, error } = await supabase.from("orders").insert(order).select().single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const token = process.env.TELEGRAM_NOTIFY_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
     if (token && chatId) {
       const text = [
