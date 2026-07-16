@@ -23,8 +23,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <nav className="nav-links">
               <Link href="/">Главная</Link>
               <Link href="/#how">Как это работает</Link>
-              <Link href="/#advantages">Преимущества</Link>
-              <Link href="/dashboard">Заявки</Link>
+              <Link href="/#advantages">О нас</Link>
+              <Link href="/#reviews">Отзывы</Link>
+              <Link href="/#faq">FAQ</Link>
             </nav>
             <div className="actions">
               <ThemeToggle />
@@ -36,7 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               ) : (
                 <>
                   <Link className="btn desktop" href="/login">Войти</Link>
-                  <Link className="btn btn-primary" href="/register">Создать аккаунт</Link>
+                  <Link className="btn btn-primary" href="/exchange">Создать заявку</Link>
                 </>
               )}
             </div>
