@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { calculateRate } from "@/lib/rates/engine";
 
 function clean(value: unknown, max = 300) {
   return String(value ?? "").trim().slice(0, max);
@@ -27,9 +28,17 @@ export async function POST(request: Request) {
       status: "Новая",
     };
 
-    if (!order.full_name || !order.telegram || !Number.isFinite(order.send_amount) || !Number.isFinite(order.receive_amount)) {
+    if (!order.full_name || !order.telegram || !Number.isFinite(order.send_amount)) {
       return NextResponse.json({ error: "Заполните обязательные поля." }, { status: 400 });
     }
+
+    const rate = await calculateRate({
+      from: order.send_currency,
+      to: "EUR",
+      amount: order.send_amount,
+      direction: "buy_eur",
+    });
+    order.receive_amount = Number(rate.receiveAmount.toFixed(2));
 
     const { data, error } = await supabase.from("orders").insert(order).select().single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

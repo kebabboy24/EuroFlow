@@ -30,10 +30,25 @@ npm run dev
 - `TELEGRAM_NOTIFY_BOT_TOKEN` — бот, который присылает заявки оператору
 - `TELEGRAM_CHAT_ID`
 - `TELEGRAM_WEBHOOK_SECRET`
+- `EUROFLOW_RATE_MARGIN_PERCENT` — маржа курса, по умолчанию 6, допустимо 5–7
+- `EUROFLOW_RUB_PER_EUR_FALLBACK` — ручной fallback RUB/EUR, если P2P API недоступны
+- `EUROFLOW_P2P_RUB_ASSET` — P2P-актив для RUB, по умолчанию USDT
+- `EUROFLOW_P2P_RUB_ASSET_TO_EUR` — курс P2P-актива к EUR для пересчёта RUB/EUR
+- `EUROFLOW_P2P_MIN_RUB_LIMIT` — минимальный лимит объявления для фильтра P2P
 
 Telegram tokens и Secret key отметь как Sensitive.
 
-## 4. Telegram Bot
+## 4. Rate Engine
+
+Калькулятор курса работает через server-side route:
+
+`/api/rates?from=RUB&to=EUR&amount=100000&direction=buy_eur`
+
+Для RUB engine пытается получить P2P-объявления Binance, затем Bybit. По умолчанию используется ликвидная пара `USDT/RUB`, затем ориентир переводится в RUB/EUR через `EUROFLOW_P2P_RUB_ASSET_TO_EUR`. Объявления фильтруются по лимитам, отклонению от медианы, подозрительным ценам, completion rate и количеству сделок, затем берутся позиции 5–7 и применяется маржа EuroFlow. Если P2P API недоступны, используется `EUROFLOW_RUB_PER_EUR_FALLBACK`.
+
+Маржа задаётся через `EUROFLOW_RATE_MARGIN_PERCENT` и ограничена диапазоном 5–7%.
+
+## 5. Telegram Bot
 
 Для заказов через Telegram открой Supabase SQL Editor и выполни:
 
@@ -51,7 +66,7 @@ curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
 
 Если используется два Telegram-бота, webhook подключай к клиентскому боту из `TELEGRAM_BOT_TOKEN`. Уведомления оператору будут отправляться через `TELEGRAM_NOTIFY_BOT_TOKEN`. Если `TELEGRAM_NOTIFY_BOT_TOKEN` не задан, уведомления отправятся через клиентского бота.
 
-## 5. Деплой
+## 6. Деплой
 
 Создай новый GitHub-репозиторий `euroflow-next`, загрузите файлы и импортируй его в Vercel.
 
