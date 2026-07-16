@@ -1796,7 +1796,16 @@ html[data-theme="dark"] .card.form {
   width: 150px;
 }
 
-html[data-theme="dark"] .brand-logo-img {
+.brand-logo-dark {
+  display: none;
+}
+
+html[data-theme="dark"] .brand-logo-light {
+  display: none;
+}
+
+html[data-theme="dark"] .brand-logo-dark {
+  display: block;
   filter: drop-shadow(0 10px 24px rgba(18, 215, 199, .12));
 }
 
