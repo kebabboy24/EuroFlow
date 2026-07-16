@@ -46,9 +46,12 @@ function SiteIcon({ name }: { name: IconName }) {
   if (name === "currency") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M8 7.2h7.8M8 12h6.2M8 16.8h7.8" />
-        <path d="M14.6 4.4a7.6 7.6 0 1 0 0 15.2" />
-        <path d="M17.6 8.2h2.7v8.1h-2.7" />
+        <circle cx="9" cy="10" r="5.2" />
+        <circle cx="15" cy="14" r="5.2" />
+        <path d="M6.8 17.3c1.4 1.6 3.3 2.5 5.2 2.5 1.6 0 3.1-.5 4.3-1.4" />
+        <path d="M17.2 6.7C15.8 5.1 13.9 4.2 12 4.2c-1.6 0-3.1.5-4.3 1.4" />
+        <text x="9" y="11.4" textAnchor="middle" fontSize="6.5" fontWeight="900" fill="currentColor" stroke="none">€</text>
+        <text x="15" y="15.6" textAnchor="middle" fontSize="6" fontWeight="900" fill="currentColor" stroke="none">₽</text>
       </svg>
     );
   }
