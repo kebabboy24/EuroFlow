@@ -87,13 +87,13 @@ export default async function DashboardPage({
               <span className="nav-icon"><DashboardIcon name="dashboard" /></span> Обзор
             </Link>
             <Link href="/dashboard#orders">
-              <span className="nav-icon"><DashboardIcon name="orders" /></span> Мои заявки
+              <span className="nav-icon"><DashboardIcon name="orders" /></span> Мои обмены
             </Link>
             <Link href="/profile">
               <span className="nav-icon"><DashboardIcon name="profile" /></span> Профиль
             </Link>
             <Link href="/exchange">
-              <span className="nav-icon"><DashboardIcon name="newOrder" /></span> Новая заявка
+              <span className="nav-icon"><DashboardIcon name="newOrder" /></span> Новый обмен
             </Link>
           </nav>
 
@@ -109,7 +109,7 @@ export default async function DashboardPage({
         <section className="dashboard-content">
           {params.created && (
             <div className="success dashboard-alert">
-              Заявка создана и отправлена оператору.
+              Обмен создан и отправлен оператору.
             </div>
           )}
 
@@ -117,11 +117,11 @@ export default async function DashboardPage({
             <div>
               <span className="dashboard-kicker">Личный кабинет</span>
               <h1>Добро пожаловать, {name}!</h1>
-              <p>Здесь находятся ваши заявки и данные аккаунта.</p>
+              <p>Здесь находятся ваши обмены и данные аккаунта.</p>
             </div>
 
             <Link className="btn btn-primary dashboard-create" href="/exchange">
-              <DashboardIcon name="newOrder" /> Создать заявку
+              <DashboardIcon name="newOrder" /> Обменять
             </Link>
           </header>
 
@@ -140,7 +140,7 @@ export default async function DashboardPage({
               <div>
                 <small>В обработке</small>
                 <strong>{processing}</strong>
-                <p>активные заявки</p>
+                <p>активные обмены</p>
               </div>
             </article>
 
@@ -158,21 +158,21 @@ export default async function DashboardPage({
             <div className="card-heading">
               <div>
                 <span className="dashboard-kicker">История операций</span>
-                <h2>Мои заявки</h2>
+                <h2>Мои обмены</h2>
               </div>
-              <Link href="/exchange">Новая заявка →</Link>
+              <Link href="/exchange">Новый обмен →</Link>
             </div>
 
             {!allOrders.length ? (
               <div className="empty-state">
                 <div className="empty-icon"><DashboardIcon name="orders" /></div>
-                <h3>У вас пока нет заявок</h3>
+                <h3>У вас пока нет обменов</h3>
                 <p>
-                  Создайте первую заявку, и она появится здесь вместе со статусом
+                  Создайте первый обмен, и он появится здесь вместе со статусом
                   и деталями обмена.
                 </p>
                 <Link className="btn btn-primary" href="/exchange">
-                  Создать первую заявку
+                  Обменять
                 </Link>
               </div>
             ) : (

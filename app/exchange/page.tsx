@@ -29,7 +29,7 @@ export default async function ExchangePage({
     <main className="page">
       <div className="container">
         <div style={{ maxWidth: 720, margin: "auto" }}>
-          <div className="small">Новая заявка</div>
+          <div className="small">Новый обмен</div>
           <h1 style={{ fontSize: 50 }}>Оформить обмен</h1>
           <OrderForm
             initialCurrency={currency}

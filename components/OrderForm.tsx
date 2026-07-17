@@ -279,7 +279,7 @@ export default function OrderForm({
     setLoading(false);
 
     if (!response.ok) {
-      setError(result.error || "Не удалось отправить заявку.");
+      setError(result.error || "Не удалось отправить обмен.");
       return;
     }
 
@@ -292,7 +292,7 @@ export default function OrderForm({
     <form className="card form exchange-flow" onSubmit={submit}>
       <div className="flow-top">
         <div>
-          <span className="dashboard-kicker">Новая заявка</span>
+          <span className="dashboard-kicker">Новый обмен</span>
           <h2>Создать обмен</h2>
         </div>
         <span className="flow-step-count">Шаг {Math.min(currentStepIndex + 1, 5)} из 5</span>
@@ -399,8 +399,8 @@ export default function OrderForm({
 
       {step === "review" && (
         <section className="flow-panel">
-          <h3>Проверка заявки</h3>
-          <p>Финальный курс фиксируется после подтверждения заявки оператором.</p>
+          <h3>Проверка обмена</h3>
+          <p>Финальный курс фиксируется после подтверждения обмена оператором.</p>
           <div className="flow-summary-card">
             <div><span>Отправляет</span><b>{formatMoney(sendAmount, sendCurrency)}</b></div>
             <div><span>Способ отправки</span><b>{sendMethodConfig.name}</b></div>
@@ -424,9 +424,9 @@ export default function OrderForm({
       {step === "instructions" && createdOrder && (
         <section className="flow-panel">
           <h3>Инструкция по оплате</h3>
-          <p>Заявка создана. Оператор проверит детали и подтвердит финальный курс.</p>
+          <p>Обмен создан. Оператор проверит детали и подтвердит финальный курс.</p>
           <div className="payment-instruction-card">
-            <div><span>Номер заявки</span><b>{createdOrder.id}</b></div>
+            <div><span>Номер обмена</span><b>{createdOrder.id}</b></div>
             <div><span>Сколько оплатить</span><b>{formatMoney(sendAmount, sendCurrency)}</b></div>
             <div><span>Куда оплатить</span><b>{sendMethodConfig.name}</b></div>
             <div><span>Комментарий к переводу</span><b>{createdOrder.payment_reference || `EF-${createdOrder.id.slice(0, 8)}`}</b></div>
@@ -450,7 +450,7 @@ export default function OrderForm({
           </button>
           {step === "review" ? (
             <button className="btn btn-primary" disabled={loading || !canContinue}>
-              {loading ? "Создаём…" : "Создать заявку"}
+              {loading ? "Обмениваем…" : "Обменять"}
             </button>
           ) : (
             <button type="button" className="btn btn-primary" onClick={goNext} disabled={!canContinue}>

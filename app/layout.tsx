@@ -37,7 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               ) : (
                 <>
                   <Link className="btn desktop" href="/login">Войти</Link>
-                  <Link className="btn btn-primary" href="/exchange">Создать заявку</Link>
+                  <Link className="btn btn-primary" href="/exchange">Обменять</Link>
                 </>
               )}
             </div>

@@ -95,7 +95,7 @@ export default function ExchangeCalculator() {
     <section className="exchange-panel">
       <div className="exchange-head">
         <div>
-          <small>Новая заявка</small>
+          <small>Новый обмен</small>
           <h2>Создать обмен</h2>
         </div>
         <span>{loadingRate ? "Обновляем курс" : "Курс EuroFlow"}</span>
@@ -189,7 +189,7 @@ export default function ExchangeCalculator() {
       </button>
 
       <p className="secure">
-        Выберите сумму, затем продолжите оформление заявки по шагам.
+        Выберите сумму, затем продолжите оформление обмена по шагам.
       </p>
     </section>
   );

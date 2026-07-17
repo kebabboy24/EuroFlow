@@ -12,7 +12,7 @@ const trustItems: { icon: IconName; title: string; description: string }[] = [
 ];
 
 const steps: { number: string; icon: IconName; title: string; description: string }[] = [
-  { number: "01", icon: "plus", title: "Создайте заявку", description: "Укажите сумму, валюту и реквизиты." },
+  { number: "01", icon: "plus", title: "Начните обмен", description: "Укажите сумму, валюту и реквизиты." },
   { number: "02", icon: "check", title: "Подтвердите детали", description: "Оператор фиксирует курс." },
   { number: "03", icon: "plane", title: "Отправьте средства", description: "Переведите деньги по реквизитам." },
   { number: "04", icon: "currency", title: "Получите евро", description: "Перевод поступает на карту или IBAN." },
@@ -110,7 +110,7 @@ export default function HomePage() {
           </p>
           <div className="hero-actions">
             <Link className="btn btn-primary" href="/exchange">
-              Создать заявку →
+              Обменять →
             </Link>
             <Link className="btn btn-ghost" href="#how">
               Как это работает
