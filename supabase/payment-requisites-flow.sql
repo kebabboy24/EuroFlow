@@ -1,6 +1,7 @@
 alter table public.orders
   add column if not exists payment_requisites jsonb,
   add column if not exists paid_at timestamptz,
+  add column if not exists completed_at timestamptz,
   add column if not exists updated_at timestamptz not null default now();
 
 alter table public.orders

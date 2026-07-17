@@ -1,4 +1,5 @@
 import { savePaymentRequisites } from "@/lib/orders/payment-requisites";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type TelegramApiResponse = {
   ok?: boolean;
@@ -129,6 +130,10 @@ function telegramUrl(handle?: string | null) {
   return `https://t.me/${value.slice(1)}`;
 }
 
+function orderTelegramUrl(order: Record<string, any>) {
+  return telegramUrl(order.telegram);
+}
+
 function buttonId(id?: string | number | null) {
   return String(id || "new").slice(0, 36);
 }
@@ -148,6 +153,25 @@ function operatorKeyboard(order: OperatorOrderNotification): TelegramInlineKeybo
       ],
       [{ text: "🏦 Добавить реквизиты", callback_data: `operator:requisites:${id}` }],
       [writeButton],
+    ],
+  };
+}
+
+function paidOperatorKeyboard(order: Record<string, any>): TelegramInlineKeyboard {
+  const id = buttonId(order.id);
+  const writeUrl = orderTelegramUrl(order);
+  const contactButton = writeUrl
+    ? { text: "Написать клиенту", url: writeUrl }
+    : { text: "Написать клиенту", callback_data: `operator:contact_client:${id}` };
+
+  return {
+    inline_keyboard: [
+      [{ text: "Проверить оплату", callback_data: `operator:check_payment:${id}` }],
+      [
+        { text: "Отпустить платеж", callback_data: `operator:release_payment:${id}` },
+        { text: "Отклонить", callback_data: `operator:reject_order:${id}` },
+      ],
+      [contactButton],
     ],
   };
 }
@@ -210,6 +234,36 @@ export function formatOperatorOrderMessage(order: OperatorOrderNotification) {
     `Оценка прибыли: ${formatAmount(order.estimated_profit, receiveCurrency)}`,
     "",
     `Время: ${createdAt.toLocaleString("ru-RU", { timeZone: "Europe/Istanbul" })}`,
+  ].join("\n");
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return "—";
+  return new Date(value).toLocaleString("ru-RU", { timeZone: "Europe/Istanbul" });
+}
+
+export function formatOperatorPaidMessage(order: Record<string, any>) {
+  return [
+    "Клиент отметил оплату",
+    "",
+    "Клиент",
+    `Имя: ${safe(order.full_name)}`,
+    `Telegram: ${safe(order.telegram)}`,
+    `Email: ${safe(order.email)}`,
+    "",
+    "Обмен",
+    `Заявка: ${formatOrderId(order.id)}`,
+    `Отдает: ${formatAmount(order.send_amount, order.send_currency)}`,
+    `Получает: ${formatAmount(order.receive_amount, order.receive_currency)}`,
+    "",
+    "Оплата",
+    `Банк / способ: ${safe(order.send_bank || order.send_method || order.payment_requisites?.bankName || order.payment_requisites?.method)}`,
+    `Статус: Оплачено`,
+    `Создано: ${formatDate(order.created_at)}`,
+    `Оплачено: ${formatDate(order.paid_at)}`,
+    "",
+    "Действия",
+    "Проверьте входящий перевод и выберите следующий шаг.",
   ].join("\n");
 }
 
@@ -277,6 +331,19 @@ async function sendOperatorChatMessage(chatId: number | string, text: string) {
   });
 }
 
+async function answerOperatorCallback(callbackId: string, text: string, showAlert = false) {
+  const { token } = operatorTelegramConfig();
+  if (!token || !callbackId) return;
+
+  await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ callback_query_id: callbackId, text, show_alert: showAlert }),
+  }).catch((error) => {
+    console.error("Operator callback answer failed", error);
+  });
+}
+
 function isOperatorChat(chatId?: string | number) {
   const configured = operatorTelegramConfig().chatId;
   return Boolean(configured) && String(chatId) === String(configured);
@@ -324,6 +391,72 @@ export async function sendOperatorOrderNotification(order: OperatorOrderNotifica
   return sendOperatorTelegramMessage(formatOperatorOrderMessage(order), operatorKeyboard(order));
 }
 
+export async function sendOperatorPaidNotification(order: Record<string, any>) {
+  return sendOperatorTelegramMessage(formatOperatorPaidMessage(order), paidOperatorKeyboard(order));
+}
+
+async function loadOperatorOrder(orderId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  return { supabase, data, error };
+}
+
+async function updateOperatorOrderStatus(orderId: string, status: "processing" | "completed" | "cancelled") {
+  const { supabase, data: order, error: readError } = await loadOperatorOrder(orderId);
+  if (readError) return { order: null, error: readError.message };
+  if (!order) return { order: null, error: "Обмен не найден." };
+
+  const now = new Date().toISOString();
+  const update: Record<string, string> = { status, updated_at: now };
+  if (status === "completed") update.completed_at = now;
+
+  const { data, error } = await supabase
+    .from("orders")
+    .update(update)
+    .eq("id", orderId)
+    .select("*")
+    .maybeSingle();
+
+  if (error) return { order: null, error: error.message };
+  if (!data) return { order: null, error: "Обмен не найден." };
+
+  return { order: data, error: "" };
+}
+
+async function handlePaymentAction(command: string, orderId: string, callback: OperatorCallbackQuery) {
+  const labels: Record<string, { status: "processing" | "completed" | "cancelled"; message: string; callback: string }> = {
+    check_payment: { status: "processing", message: "Статус обновлён: В обработке", callback: "В обработке" },
+    release_payment: { status: "completed", message: "Обмен завершён", callback: "Обмен завершён" },
+    reject_order: { status: "cancelled", message: "Обмен отменён", callback: "Обмен отменён" },
+  };
+
+  const action = labels[command];
+  if (!action) return false;
+
+  const { order, error } = await updateOperatorOrderStatus(orderId, action.status);
+  if (error || !order) {
+    await answerOperatorCallback(callback.id, error || "Не удалось обновить статус", true);
+    return true;
+  }
+
+  await answerOperatorCallback(callback.id, action.callback);
+  await sendOperatorChatMessage(
+    callback.message?.chat?.id || operatorTelegramConfig().chatId,
+    [
+      action.message,
+      "",
+      `Обмен: ${formatOrderId(order.id)}`,
+      `Текущий статус: ${statusLabel(order.status)}`,
+    ].join("\n")
+  );
+  return true;
+}
+
 export async function handleOperatorCallback(callback: OperatorCallbackQuery) {
   const action = callback.data || "operator:unknown";
   const [, command, orderId = ""] = action.split(":");
@@ -336,22 +469,30 @@ export async function handleOperatorCallback(callback: OperatorCallbackQuery) {
   const { token } = operatorTelegramConfig();
   if (!token || !callback.id) return;
 
+  if (!isOperatorChat(callback.message?.chat?.id)) {
+    await answerOperatorCallback(callback.id, "Недоступно", true);
+    console.warn("Blocked operator callback from unexpected chat", callback.message?.chat?.id);
+    return;
+  }
+
+  if (orderId && await handlePaymentAction(command, orderId, callback)) return;
+
+  if (command === "contact_client" && orderId) {
+    const { data: order } = await loadOperatorOrder(orderId);
+    await answerOperatorCallback(
+      callback.id,
+      order ? `Клиент: ${order.telegram || order.email || order.full_name || "контакт не указан"}` : "Обмен не найден",
+      true
+    );
+    return;
+  }
+
   if (command === "requisites" && orderId) {
     const chatId = callback.message?.chat?.id || operatorTelegramConfig().chatId;
     await sendOperatorChatMessage(chatId, requisitesTemplate(orderId));
   }
 
-  await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      callback_query_id: callback.id,
-      text: command === "requisites" ? "Шаблон реквизитов отправлен." : "Действие зафиксировано.",
-      show_alert: false,
-    }),
-  }).catch((error) => {
-    console.error("Operator callback answer failed", error);
-  });
+  await answerOperatorCallback(callback.id, command === "requisites" ? "Шаблон реквизитов отправлен." : "Действие зафиксировано.");
 }
 
 export async function handleOperatorMessage(message: OperatorTelegramMessage) {

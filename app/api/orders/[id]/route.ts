@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendOperatorTelegramMessage } from "@/lib/telegram/operator-notifications";
+import { sendOperatorPaidNotification } from "@/lib/telegram/operator-notifications";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -92,24 +92,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
   if (!data) return NextResponse.json({ error: "Обмен не найден." }, { status: 404 });
 
-  const message = [
-    "Клиент отметил оплату",
-    "",
-    `Обмен: #EF-${String(data.id).slice(0, 8).toUpperCase()}`,
-    `Статус: paid`,
-    "",
-    `Клиент: ${data.full_name || "—"}`,
-    `Telegram: ${data.telegram || "—"}`,
-    `Email: ${data.email || "—"}`,
-    "",
-    `Оплачено: ${Number(data.send_amount || 0).toLocaleString("ru-RU")} ${data.send_currency}`,
-    `К получению: ${Number(data.receive_amount || 0).toLocaleString("ru-RU", { maximumFractionDigits: 2 })} ${data.receive_currency}`,
-    `Банк / способ: ${data.send_bank || data.send_method || data.payment_requisites?.bankName || data.payment_requisites?.method || "—"}`,
-    "",
-    "Проверьте перевод и начните обработку обмена.",
-  ].join("\n");
-
-  const notification = await sendOperatorTelegramMessage(message);
+  const notification = await sendOperatorPaidNotification(data);
   if (!notification.ok) console.error("Operator paid notification failed", notification);
 
   return NextResponse.json({ ok: true, order: data });
