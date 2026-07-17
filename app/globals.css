@@ -1997,13 +1997,11 @@ html[data-theme="dark"] .payment-method-mark {
   background: linear-gradient(145deg, rgba(21,87,255,.07), rgba(18,215,199,.06));
 }
 
-.requisites-summary-grid div,
-.requisites-tile {
+.requisites-summary-grid div {
   min-width: 0;
 }
 
-.requisites-summary-grid span,
-.requisites-tile span {
+.requisites-summary-grid span {
   display: block;
   color: var(--muted);
   font-size: 12px;
@@ -2011,8 +2009,7 @@ html[data-theme="dark"] .payment-method-mark {
   margin-bottom: 6px;
 }
 
-.requisites-summary-grid strong,
-.requisites-tile strong {
+.requisites-summary-grid strong {
   display: block;
   overflow-wrap: anywhere;
   font-size: 16px;
@@ -2030,23 +2027,108 @@ html[data-theme="dark"] .payment-method-mark {
   justify-content: flex-start;
 }
 
-.requisites-grid {
+.requisites-ready-screen {
+  max-width: 900px;
+  margin-inline: auto;
+  gap: 16px;
+}
+
+.requisites-ready-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.requisites-ready-head > div:first-child {
+  min-width: 0;
+}
+
+.requisites-amount-card {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid rgba(21,87,255,.22);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(21,87,255,.14), rgba(18,215,199,.10));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+}
+
+.requisites-amount-card span,
+.requisites-payment-top span,
+.requisites-row span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.requisites-amount-card strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: -.04em;
+}
+
+.requisites-payment-card {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--surface-solid);
+}
+
+.requisites-payment-top {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  padding: 18px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(145deg, rgba(21,87,255,.08), rgba(18,215,199,.06));
 }
 
-.requisites-tile {
-  position: relative;
-  align-content: start;
-  min-height: 116px;
-  background: var(--surface-solid);
+.requisites-payment-top div {
+  min-width: 0;
+}
+
+.requisites-payment-top strong {
+  display: block;
+  min-width: 0;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+  font-size: 18px;
+}
+
+.requisites-row-list {
+  display: grid;
+}
+
+.requisites-row {
+  display: grid;
+  grid-template-columns: minmax(120px, .55fr) minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.requisites-row:last-child {
+  border-bottom: 0;
+}
+
+.requisites-row strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 16px;
 }
 
 .copy-button {
   justify-self: start;
-  min-height: 34px;
-  margin-top: 12px;
+  min-height: 32px;
+  margin-top: 0;
   border: 1px solid rgba(21,87,255,.22);
   border-radius: 999px;
   padding: 0 12px;
@@ -2334,6 +2416,11 @@ html[data-theme="dark"] .requisites-note {
   background: rgba(21,87,255,.12);
 }
 
+html[data-theme="dark"] .requisites-amount-card,
+html[data-theme="dark"] .requisites-payment-top {
+  box-shadow: inset 0 0 0 1px rgba(18,215,199,.04);
+}
+
 html[data-theme="dark"] .paid-confirmation-screen {
   background:
     radial-gradient(circle at top, rgba(18,215,199,.14), transparent 36%),
@@ -2356,9 +2443,15 @@ html[data-theme="dark"] .paid-confirmation-screen {
   .flow-summary-card div,
   .payment-instruction-card div,
   .requisites-summary-grid,
-  .requisites-grid,
+  .requisites-ready-head,
+  .requisites-payment-top,
+  .requisites-row,
   .paid-summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .requisites-row {
+    gap: 8px;
   }
 
   .paid-confirmation-screen {

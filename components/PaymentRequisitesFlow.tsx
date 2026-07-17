@@ -88,12 +88,12 @@ function CopyButton({ value }: { value: string }) {
 
   return (
     <button type="button" className="copy-button" onClick={copy}>
-      {copied ? "Скопировано" : "Копировать"}
+      {copied ? "Готово" : "Копировать"}
     </button>
   );
 }
 
-function DetailCard({
+function DetailRow({
   label,
   value,
   copy,
@@ -105,7 +105,7 @@ function DetailCard({
   if (!value) return null;
 
   return (
-    <div className="requisites-tile">
+    <div className="requisites-row">
       <span>{label}</span>
       <strong>{value}</strong>
       {copy && <CopyButton value={value} />}
@@ -283,21 +283,42 @@ export default function PaymentRequisitesFlow({ initialOrder }: { initialOrder: 
   }
 
   return (
-    <section className="flow-panel requisites-screen">
-      <span className="status-pill status-waiting">{statusLabel(order.status)}</span>
-      <h3>Реквизиты готовы</h3>
-      <p>Переведите точную сумму по указанным реквизитам.</p>
+    <section className="flow-panel requisites-screen requisites-ready-screen">
+      <div className="requisites-ready-head">
+        <div>
+          <span className="status-pill status-waiting">{statusLabel(order.status)}</span>
+          <h3>Реквизиты готовы</h3>
+          <p>Переведите точную сумму по указанным реквизитам.</p>
+        </div>
+        <div className="requisites-amount-card">
+          <span>Сумма к оплате</span>
+          <strong>{formatMoney(order.send_amount, order.send_currency)}</strong>
+          <CopyButton value={formatMoney(order.send_amount, order.send_currency)} />
+        </div>
+      </div>
 
-      <div className="requisites-grid">
-        <DetailCard label="Сумма к оплате" value={formatMoney(order.send_amount, order.send_currency)} copy />
-        <DetailCard label="Банк / способ" value={requisites?.bankName || requisites?.method} />
-        <DetailCard label="Получатель" value={requisites?.recipientName} copy />
-        <DetailCard label="Номер карты" value={requisites?.cardNumber} copy />
-        <DetailCard label="Телефон" value={requisites?.phoneNumber} copy />
-        <DetailCard label="IBAN" value={requisites?.iban} copy />
-        <DetailCard label="Кошелек" value={requisites?.walletAddress} copy />
-        <DetailCard label="Комментарий к переводу" value={comment} copy />
-        <DetailCard label="Реквизиты действуют до" value={requisites?.expiresAt} />
+      <div className="requisites-payment-card">
+        <div className="requisites-payment-top">
+          <div>
+            <span>Банк / способ</span>
+            <strong>{requisites?.bankName || requisites?.method || displayMethod(order)}</strong>
+          </div>
+          {requisites?.expiresAt && (
+            <div>
+              <span>Действуют до</span>
+              <strong>{requisites.expiresAt}</strong>
+            </div>
+          )}
+        </div>
+
+        <div className="requisites-row-list">
+          <DetailRow label="Получатель" value={requisites?.recipientName} copy />
+          <DetailRow label="Номер карты" value={requisites?.cardNumber} copy />
+          <DetailRow label="Телефон" value={requisites?.phoneNumber} copy />
+          <DetailRow label="IBAN" value={requisites?.iban} copy />
+          <DetailRow label="Кошелек" value={requisites?.walletAddress} copy />
+          <DetailRow label="Комментарий к переводу" value={comment} copy />
+        </div>
       </div>
 
       <div className="security-warning">
