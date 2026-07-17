@@ -15,7 +15,7 @@ export async function GET() {
   const result = await sendTelegramNotification([
     "✅ EuroFlow test notification",
     "",
-    "Если ты видишь это сообщение, TELEGRAM_NOTIFY_BOT_TOKEN и TELEGRAM_CHAT_ID настроены правильно.",
+    "Если ты видишь это сообщение, OPERATOR_TELEGRAM_BOT_TOKEN и OPERATOR_TELEGRAM_CHAT_ID настроены правильно.",
   ].join("\n"));
 
   return NextResponse.json(result, { status: result.ok ? 200 : 500 });

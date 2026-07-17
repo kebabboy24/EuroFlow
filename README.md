@@ -30,17 +30,19 @@ npm run dev
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SECRET_KEY`
-- `TELEGRAM_BOT_TOKEN` — бот, которому пишут клиенты
-- `TELEGRAM_NOTIFY_BOT_TOKEN` — бот, который присылает заявки оператору
-- `TELEGRAM_CHAT_ID`
-- `TELEGRAM_WEBHOOK_SECRET`
+- `OPERATOR_TELEGRAM_BOT_TOKEN` — админ-бот, который присылает все новые обмены оператору
+- `OPERATOR_TELEGRAM_CHAT_ID` — твой chat id или id группы, куда админ-бот присылает заказы
+- `CLIENT_TELEGRAM_BOT_TOKEN` — клиентский бот, которому пишут пользователи
+- `CLIENT_TELEGRAM_WEBHOOK_SECRET` — секрет webhook для клиентского бота
+- `TELEGRAM_BOT_TOKEN` — legacy fallback, если новый operator/client token не задан
+- `TELEGRAM_CHAT_ID` — legacy fallback для operator chat id
 - `EUROFLOW_RATE_MARGIN_PERCENT` — маржа курса, по умолчанию 6, допустимо 5–7
 - `EUROFLOW_RUB_PER_EUR_FALLBACK` — ручной fallback RUB/EUR, если P2P API недоступны
 - `EUROFLOW_P2P_RUB_ASSET` — P2P-актив для RUB, по умолчанию USDT
 - `EUROFLOW_P2P_RUB_ASSET_TO_EUR` — курс P2P-актива к EUR для пересчёта RUB/EUR
 - `EUROFLOW_P2P_MIN_RUB_LIMIT` — минимальный лимит объявления для фильтра P2P
 
-Telegram tokens и Secret key отметь как Sensitive.
+Telegram tokens, webhook secret и Supabase Secret key отметь как Sensitive. Никогда не коммить реальные токены в GitHub.
 
 ## 4. Payment Methods
 
@@ -66,17 +68,39 @@ Telegram tokens и Secret key отметь как Sensitive.
 
 `supabase/telegram-orders.sql`
 
-После деплоя на Vercel подключи webhook:
+В EuroFlow теперь две разные роли Telegram-ботов:
+
+- operator/admin bot: только получает уведомления о заказах;
+- client bot: общается с клиентами и создаёт обмены внутри Telegram.
+
+В Vercel Environment Variables добавь:
+
+- `OPERATOR_TELEGRAM_BOT_TOKEN` — токен нового админ-бота;
+- `OPERATOR_TELEGRAM_CHAT_ID` — твой chat id или id операторской группы;
+- `CLIENT_TELEGRAM_BOT_TOKEN` — токен клиентского бота;
+- `CLIENT_TELEGRAM_WEBHOOK_SECRET` — случайная строка для защиты webhook.
+
+Старые переменные `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` остаются fallback, но для двух ботов лучше использовать новые имена.
+
+После деплоя на Vercel подключи webhook только к клиентскому боту:
 
 ```bash
-curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+curl "https://api.telegram.org/bot$CLIENT_TELEGRAM_BOT_TOKEN/setWebhook" \
   -d "url=https://ВАШ-ДОМЕН.vercel.app/api/telegram/webhook" \
-  -d "secret_token=$TELEGRAM_WEBHOOK_SECRET"
+  -d "secret_token=$CLIENT_TELEGRAM_WEBHOOK_SECRET"
 ```
 
-Пользователь создает заявку командой `/order`, бот пошагово собирает данные и сохраняет заявку в `orders`.
+Пользователь создает обмен командой `/order`, бот пошагово собирает данные и сохраняет заказ в `orders`.
 
-Если используется два Telegram-бота, webhook подключай к клиентскому боту из `TELEGRAM_BOT_TOKEN`. Уведомления оператору будут отправляться через `TELEGRAM_NOTIFY_BOT_TOKEN`. Если `TELEGRAM_NOTIFY_BOT_TOKEN` не задан, уведомления отправятся через клиентского бота.
+Админ-боту webhook не нужен для получения заказов. Он отправляет уведомления через `sendMessage` по `OPERATOR_TELEGRAM_CHAT_ID`. Inline-кнопки под уведомлением уже добавлены; если позже подключить webhook админ-бота, безопасный placeholder находится здесь:
+
+`/api/telegram/operator`
+
+Чтобы проверить админ-бота после входа на сайт, открой:
+
+`/api/telegram/test-notify`
+
+Если тестовое сообщение пришло, `OPERATOR_TELEGRAM_BOT_TOKEN` и `OPERATOR_TELEGRAM_CHAT_ID` настроены правильно.
 
 ## 7. Деплой
 

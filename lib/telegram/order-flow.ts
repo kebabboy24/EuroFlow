@@ -6,6 +6,7 @@ import {
 import { insertOrderWithSchemaFallback } from "@/lib/orders/insert-order";
 import { calculateRate } from "@/lib/rates/engine";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendOperatorOrderNotification } from "@/lib/telegram/operator-notifications";
 
 type TelegramUser = {
   id: number;
@@ -107,12 +108,6 @@ function formatRate(value?: number) {
   return Number(value || 0).toLocaleString("ru-RU", {
     maximumFractionDigits: 8,
   });
-}
-
-function formatAmount(value: number | undefined, currency = "EUR") {
-  return `${Number(value || 0).toLocaleString("ru-RU", {
-    maximumFractionDigits: currency === "USDT" ? 4 : 2,
-  })} ${currency}`;
 }
 
 function defaultMethodName(currency: string) {
@@ -250,11 +245,7 @@ function noSessionMessage() {
 }
 
 function clientBotToken() {
-  return process.env.TELEGRAM_BOT_TOKEN;
-}
-
-function notifyBotToken() {
-  return process.env.TELEGRAM_NOTIFY_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+  return process.env.CLIENT_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
 }
 
 async function sendTelegramMessage(
@@ -423,32 +414,17 @@ async function createOrder(message: TelegramMessage, payload: OrderPayload) {
   if (error) throw error;
   if (!data?.id) throw new Error("Order was saved without id.");
 
-  const operatorChatId = process.env.TELEGRAM_CHAT_ID;
-  const operatorToken = notifyBotToken();
-  const isSameChat = String(operatorChatId) === String(message.chat.id);
-  const isSameBot = operatorToken === clientBotToken();
-
-  if (operatorChatId && operatorToken && !(isSameChat && isSameBot)) {
-    await sendTelegramMessage(
-      operatorChatId,
-      [
-        "Новая заявка EuroFlow из Telegram",
-        "",
-        `ID: ${data.id}`,
-        `Комментарий к оплате: ${reference}`,
-        orderSummary(enriched, message.from),
-        "",
-        "Операторская информация:",
-        `Базовый курс: 1 ${order.send_currency} = ${formatRate(enriched.base_rate)} ${order.receive_currency}`,
-        `Курс EuroFlow: 1 ${order.send_currency} = ${formatRate(enriched.rate_value)} ${order.receive_currency}`,
-        `Маржа EuroFlow: ${formatRate(enriched.margin_percent)}%`,
-        `Оценочная прибыль: ${formatAmount(enriched.estimated_profit, order.receive_currency)}`,
-        `Источник курса: ${enriched.rate_source || "manual_fallback"}`,
-        "Статус: Новая",
-      ].join("\n"),
-      undefined,
-      operatorToken
-    );
+  const operatorNotification = await sendOperatorOrderNotification({
+    ...order,
+    id: data.id,
+    source: "telegram",
+    base_rate: enriched.base_rate,
+    margin_percent: enriched.margin_percent,
+    estimated_profit: enriched.estimated_profit,
+    rate_source: enriched.rate_source,
+  });
+  if (!operatorNotification.ok) {
+    console.error("Telegram client order operator notification failed", operatorNotification);
   }
 
   await deleteSession(message.chat.id);

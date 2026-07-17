@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { calculateRate } from "@/lib/rates/engine";
 import { insertOrderWithSchemaFallback } from "@/lib/orders/insert-order";
-import { sendTelegramNotification } from "@/lib/telegram/notify";
+import { sendOperatorOrderNotification } from "@/lib/telegram/operator-notifications";
 
 function clean(value: unknown, max = 300) {
   return String(value ?? "").trim().slice(0, max);
@@ -10,18 +10,6 @@ function clean(value: unknown, max = 300) {
 
 function paymentReference() {
   return `EF-${Date.now().toString(36).toUpperCase()}`;
-}
-
-function formatRate(value: number) {
-  return Number(value || 0).toLocaleString("ru-RU", {
-    maximumFractionDigits: 8,
-  });
-}
-
-function formatAmount(value: number, currency: string) {
-  return `${Number(value || 0).toLocaleString("ru-RU", {
-    maximumFractionDigits: currency === "USDT" ? 4 : 2,
-  })} ${currency}`;
 }
 
 export async function POST(request: Request) {
@@ -72,28 +60,16 @@ export async function POST(request: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if (!data) return NextResponse.json({ error: "Не удалось сохранить заявку." }, { status: 500 });
 
-    const notificationText = [
-      "🟣 Новая заявка EuroFlow",
-      "",
-      `🆔 ${data.id}`,
-      `👤 ${order.full_name}`,
-      `📧 ${order.email}`,
-      `📱 ${order.telegram}`,
-      "",
-      `💸 Клиент отправляет: ${order.send_amount} ${order.send_currency}`,
-      `🏦 Банк/метод отправки: ${order.send_bank || order.send_method || "Не указан"}`,
-      `💶 Клиент получает: ${order.receive_amount} ${order.receive_currency}`,
-      `🏦 Банк/метод получения: ${order.receive_bank || order.receive_method || "Не указан"}`,
-      `💳 Реквизиты получения: ${order.payout_details}`,
-      `📈 Курс EuroFlow: 1 ${order.send_currency} = ${formatRate(rate.finalRate)} ${order.receive_currency}`,
-      `📊 Базовый курс: 1 ${order.send_currency} = ${formatRate(rate.baseRate)} ${order.receive_currency}`,
-      `🧮 Маржа EuroFlow: ${marginPercent}%`,
-      `💰 Оценочная прибыль: ${formatAmount(rate.estimatedProfit, order.receive_currency)}`,
-      `🔖 Комментарий к оплате: ${order.payment_reference}`,
-      `📌 Статус: ${order.status}`,
-      order.comment ? `📝 ${order.comment}` : "",
-    ].filter(Boolean).join("\n");
-    const telegramNotification = await sendTelegramNotification(notificationText);
+    const telegramNotification = await sendOperatorOrderNotification({
+      ...order,
+      id: data.id,
+      source: "website",
+      created_at: typeof data.created_at === "string" ? data.created_at : null,
+      base_rate: Number(rate.baseRate.toFixed(8)),
+      margin_percent: marginPercent,
+      estimated_profit: Number(rate.estimatedProfit.toFixed(2)),
+      rate_source: rate.source,
+    });
     if (!telegramNotification.ok) {
       console.error("Telegram order notification failed", telegramNotification);
     }

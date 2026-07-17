@@ -9,7 +9,7 @@ type TelegramUpdate = {
 };
 
 function isAuthorized(request: Request) {
-  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  const secret = process.env.CLIENT_TELEGRAM_WEBHOOK_SECRET || process.env.TELEGRAM_WEBHOOK_SECRET;
   if (!secret) return true;
 
   return request.headers.get("x-telegram-bot-api-secret-token") === secret;
