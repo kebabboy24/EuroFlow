@@ -32,6 +32,14 @@ export type PaymentOrder = {
 
 const terminalStatuses = new Set(["paid", "processing", "completed", "cancelled"]);
 
+const paidTimeline = [
+  { title: "Заявка создана", state: "done" },
+  { title: "Реквизиты выданы", state: "done" },
+  { title: "Оплата отмечена", state: "done" },
+  { title: "Оператор проверяет перевод", state: "current" },
+  { title: "Евро отправлены", state: "pending" },
+] as const;
+
 function formatMoney(value: number, currency: string) {
   return `${Number(value || 0).toLocaleString("ru-RU", {
     maximumFractionDigits: currency === "USDT" ? 4 : 2,
@@ -105,9 +113,69 @@ function DetailCard({
   );
 }
 
+function CheckCircleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="paid-success-svg">
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8.2 12.2 2.4 2.4 5.3-5.5" />
+    </svg>
+  );
+}
+
+function PaidConfirmation({ order }: { order: PaymentOrder }) {
+  const summary = [
+    { label: "Номер обмена", value: `#EF-${order.id.slice(0, 8).toUpperCase()}` },
+    { label: "Вы отправили", value: formatMoney(order.send_amount, order.send_currency) },
+    { label: "Вы получите", value: formatMoney(order.receive_amount, order.receive_currency) },
+    { label: "Банк / способ оплаты", value: displayMethod(order) },
+    { label: "Статус", value: "Оплачено" },
+    { label: "Следующий шаг", value: "Проверка оператором" },
+  ];
+
+  return (
+    <section className="flow-panel paid-confirmation-screen">
+      <div className="paid-confirmation-visual" aria-hidden="true">
+        <CheckCircleIcon />
+      </div>
+      <span className="status-pill status-completed">Оплачено</span>
+      <h3>Оплата отмечена</h3>
+      <p>Мы получили ваше подтверждение. Оператор проверит перевод и начнёт обработку обмена.</p>
+
+      <div className="paid-summary-grid">
+        {summary.map((item) => (
+          <div key={item.label}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+          </div>
+        ))}
+      </div>
+
+      <div className="paid-timeline" aria-label="Статус обмена">
+        {paidTimeline.map((item) => (
+          <div key={item.title} className={`paid-timeline-step ${item.state}`}>
+            <span />
+            <strong>{item.title}</strong>
+          </div>
+        ))}
+      </div>
+
+      <p className="small paid-confirmation-note">Проверка обычно занимает 10–30 минут.</p>
+      <div className="security-warning">
+        EuroFlow не запрашивает CVV, PIN, пароли банка и одноразовые SMS-коды.
+      </div>
+
+      <div className="flow-actions visible-actions paid-confirmation-actions">
+        <button type="button" className="btn btn-primary" onClick={() => window.location.assign("/dashboard")}>Мои обмены</button>
+        <a className="btn" href="https://t.me/" target="_blank" rel="noreferrer">Связаться с поддержкой</a>
+      </div>
+    </section>
+  );
+}
+
 export default function PaymentRequisitesFlow({ initialOrder }: { initialOrder: PaymentOrder }) {
   const [order, setOrder] = useState(initialOrder);
   const [pollError, setPollError] = useState("");
+  const [paymentError, setPaymentError] = useState("");
   const [markingPaid, setMarkingPaid] = useState(false);
   const router = useRouter();
 
@@ -153,8 +221,11 @@ export default function PaymentRequisitesFlow({ initialOrder }: { initialOrder: 
   }, [order.id, shouldPoll]);
 
   async function markPaid() {
+    if (markingPaid || order.status !== "awaiting_payment") return;
+
     setMarkingPaid(true);
     setPollError("");
+    setPaymentError("");
 
     try {
       const response = await fetch(`/api/orders/${order.id}`, {
@@ -167,10 +238,15 @@ export default function PaymentRequisitesFlow({ initialOrder }: { initialOrder: 
       if (!response.ok) throw new Error(result.error || "Не удалось отметить оплату.");
       setOrder(result.order);
     } catch (error) {
-      setPollError(error instanceof Error ? error.message : "Не удалось отметить оплату.");
+      console.error("Mark paid failed", error);
+      setPaymentError("Не удалось отметить оплату. Попробуйте ещё раз или свяжитесь с поддержкой.");
     } finally {
       setMarkingPaid(false);
     }
+  }
+
+  if (order.status === "paid") {
+    return <PaidConfirmation order={order} />;
   }
 
   if (!readyForPayment) {
@@ -228,10 +304,16 @@ export default function PaymentRequisitesFlow({ initialOrder }: { initialOrder: 
         EuroFlow не запрашивает CVV, PIN, пароли банка и одноразовые SMS-коды.
       </div>
       {pollError && <div className="error">{pollError}</div>}
+      {paymentError && (
+        <div className="payment-error-card">
+          <strong>Не удалось отметить оплату</strong>
+          <span>Попробуйте ещё раз или свяжитесь с поддержкой.</span>
+        </div>
+      )}
 
       <div className="flow-actions visible-actions">
         <button type="button" className="btn btn-primary" onClick={markPaid} disabled={markingPaid || order.status === "paid"}>
-          {order.status === "paid" ? "Оплата отмечена" : markingPaid ? "Отмечаем…" : "Я оплатил"}
+          {markingPaid ? "Отправляем подтверждение..." : paymentError ? "Попробовать снова" : "Я оплатил"}
         </button>
         <a className="btn" href="https://t.me/" target="_blank" rel="noreferrer">Связаться с поддержкой</a>
       </div>

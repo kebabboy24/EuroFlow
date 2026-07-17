@@ -28,6 +28,7 @@ create table if not exists public.orders (
   comment text,
   status text not null default 'awaiting_requisites',
   paid_at timestamptz,
+  updated_at timestamptz not null default now(),
   created_at timestamptz not null default now()
 );
 
