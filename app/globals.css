@@ -1020,103 +1020,115 @@ h1 {
 }
 
 .hero-visual {
-  --globe-core: #ffffff;
-  --globe-mid: #edf5ff;
-  --globe-edge: #cedaff;
-  --globe-dot: rgba(22, 93, 255, .28);
-  --globe-grid: rgba(22, 93, 255, .13);
-  --globe-land: rgba(22, 93, 255, .08);
-  --globe-europe: rgba(22, 93, 255, .34);
-  --route-strong: rgba(22, 93, 255, .78);
-  --route-soft: rgba(18, 215, 199, .68);
+  --globe-highlight: #ffffff;
+  --globe-surface: #eaf4ff;
+  --globe-edge: #c9dcfa;
+  --globe-rim-start: rgba(18, 215, 199, .48);
+  --globe-rim-mid: rgba(22, 93, 255, .22);
+  --globe-rim-end: rgba(22, 93, 255, .06);
+  --globe-map-dot: rgba(22, 93, 255, .5);
+  --globe-map-muted: rgba(22, 93, 255, .24);
+  --globe-grid-line: rgba(22, 93, 255, .13);
+  --globe-coast-line: rgba(22, 93, 255, .26);
+  --globe-orbit-line: rgba(22, 93, 255, .14);
+  --globe-node-ring: rgba(255, 255, 255, .96);
   position: absolute;
   z-index: 1;
-  left: 40.5%;
-  top: 48px;
-  width: min(610px, 48vw);
+  left: 41.5%;
+  top: 58px;
+  width: min(600px, 47vw);
   aspect-ratio: 1.23;
   pointer-events: none;
-  opacity: .9;
+  opacity: .76;
 }
 
 .hero-globe {
   width: 100%;
   height: 100%;
   overflow: visible;
-  filter: drop-shadow(0 28px 70px rgba(22, 93, 255, .12));
+  filter: drop-shadow(0 30px 70px rgba(22, 93, 255, .1));
 }
 
 .hero-globe-shadow {
-  fill: rgba(11, 38, 92, .08);
-  filter: blur(10px);
+  fill: rgba(17, 55, 120, .09);
+  filter: blur(12px);
 }
 
-.hero-globe-halo {
+.hero-globe-ambient {
+  fill: rgba(22, 93, 255, .04);
+  stroke: rgba(18, 215, 199, .08);
+  stroke-width: 16;
+  filter: blur(8px);
+}
+
+.hero-globe-orbit {
   fill: none;
-  stroke: rgba(22, 93, 255, .08);
-  stroke-width: 17;
+  stroke: var(--globe-orbit-line);
+  stroke-width: 1;
+  stroke-dasharray: 2 9;
+}
+
+.hero-globe-orbit-one {
+  transform: rotate(-9deg);
+  transform-origin: 326px 254px;
+}
+
+.hero-globe-orbit-two {
+  stroke-dasharray: 26 12;
+  opacity: .48;
+  transform: rotate(18deg);
+  transform-origin: 326px 254px;
 }
 
 .hero-globe-surface {
   fill: url(#efGlobeSurface);
-}
-
-.hero-globe-dots {
-  opacity: .72;
+  stroke: url(#efGlobeRim);
+  stroke-width: 1.8;
 }
 
 .hero-globe-grid {
   fill: none;
-  stroke: var(--globe-grid);
-  stroke-width: 1.35;
-}
-
-.hero-globe-land {
-  fill: var(--globe-land);
-  stroke: rgba(22, 93, 255, .13);
-  stroke-width: 1.2;
-}
-
-.hero-globe-land.thin {
-  fill: none;
-  stroke: rgba(22, 93, 255, .16);
-  stroke-width: 1.2;
+  stroke: var(--globe-grid-line);
+  stroke-width: .85;
   stroke-linecap: round;
 }
 
-.hero-globe-europe {
-  fill: var(--globe-europe);
-  stroke: rgba(22, 93, 255, .42);
-  stroke-width: 1.8;
+.hero-globe-map path {
+  fill: url(#efMapDots);
+  opacity: .9;
 }
 
-.hero-globe-coast {
+.hero-globe-map .hero-globe-map-muted {
+  opacity: .42;
+}
+
+.hero-globe-coasts {
   fill: none;
-  stroke: rgba(255,255,255,.76);
-  stroke-width: 1.4;
-  stroke-dasharray: 3 6;
+  stroke: var(--globe-coast-line);
+  stroke-width: .75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .hero-route {
   fill: none;
-  stroke: url(#efRouteGradient);
-  stroke-width: 2.35;
+  stroke-width: 1.7;
   stroke-linecap: round;
-  opacity: .68;
+  opacity: .74;
+  filter: drop-shadow(0 0 4px rgba(38, 128, 255, .35));
 }
 
-.hero-route.route-cis {
-  stroke: var(--route-strong);
+.hero-route.route-blue {
+  stroke: url(#efRouteBlue);
 }
 
-.hero-route.route-south {
-  stroke: var(--route-soft);
+.hero-route.route-cyan {
+  stroke: url(#efRouteCyan);
 }
 
 .hero-node {
-  stroke: rgba(255,255,255,.94);
-  stroke-width: 3.4;
-  filter: drop-shadow(0 0 14px rgba(22, 93, 255, .24));
+  stroke: var(--globe-node-ring);
+  stroke-width: 2;
 }
 
 .hero-node.blue {
@@ -1128,57 +1140,55 @@ h1 {
 }
 
 .hero-euro-orbit {
-  fill: rgba(22, 93, 255, .12);
-  stroke: rgba(255,255,255,.88);
-  stroke-width: 4;
-  filter: drop-shadow(0 0 24px rgba(22, 93, 255, .26));
+  fill: rgba(22, 93, 255, .09);
+  stroke: rgba(22, 93, 255, .24);
+  stroke-width: 1.2;
 }
 
 .hero-euro-core {
-  fill: url(#efEuroGlow);
-  stroke: rgba(255,255,255,.94);
-  stroke-width: 3;
+  fill: #165dff;
+  stroke: var(--globe-node-ring);
+  stroke-width: 2;
 }
 
 .hero-euro-symbol {
   fill: #fff;
-  font-size: 39px;
-  font-weight: 900;
+  font-size: 22px;
+  font-weight: 800;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
 html[data-theme="dark"] .hero-visual {
-  --globe-core: #0b2a55;
-  --globe-mid: #071f42;
-  --globe-edge: #04152c;
-  --globe-dot: rgba(18, 215, 199, .22);
-  --globe-grid: rgba(103, 188, 255, .18);
-  --globe-land: rgba(71, 118, 255, .13);
-  --globe-europe: rgba(75, 103, 255, .42);
-  --route-strong: rgba(82, 129, 255, .92);
-  --route-soft: rgba(18, 215, 199, .84);
-  opacity: .8;
+  --globe-highlight: #0c3158;
+  --globe-surface: #071d3a;
+  --globe-edge: #031328;
+  --globe-rim-start: rgba(18, 215, 199, .55);
+  --globe-rim-mid: rgba(57, 134, 255, .34);
+  --globe-rim-end: rgba(22, 93, 255, .08);
+  --globe-map-dot: rgba(95, 185, 255, .62);
+  --globe-map-muted: rgba(64, 132, 255, .28);
+  --globe-grid-line: rgba(96, 182, 255, .16);
+  --globe-coast-line: rgba(116, 207, 255, .3);
+  --globe-orbit-line: rgba(18, 215, 199, .2);
+  --globe-node-ring: rgba(4, 20, 38, .96);
+  opacity: .84;
 }
 
 html[data-theme="dark"] .hero-globe {
-  filter: drop-shadow(0 28px 72px rgba(18, 215, 199, .13));
+  filter: drop-shadow(0 32px 80px rgba(18, 215, 199, .11));
 }
 
-html[data-theme="dark"] .hero-globe-halo {
-  stroke: rgba(18, 215, 199, .13);
+html[data-theme="dark"] .hero-globe-ambient {
+  fill: rgba(22, 93, 255, .08);
+  stroke: rgba(18, 215, 199, .11);
 }
 
 html[data-theme="dark"] .hero-globe-shadow {
-  fill: rgba(0,0,0,.26);
-}
-
-html[data-theme="dark"] .hero-globe-coast {
-  stroke: rgba(179, 225, 255, .34);
+  fill: rgba(0, 0, 0, .3);
 }
 
 html[data-theme="dark"] .hero-node {
-  stroke: rgba(5, 20, 36, .9);
-  filter: drop-shadow(0 0 16px rgba(18, 215, 199, .32));
+  filter: drop-shadow(0 0 5px rgba(18, 215, 199, .7));
 }
 
 .exchange-panel {
@@ -1505,10 +1515,10 @@ html[data-theme="dark"] .card.form {
   }
 
   .hero-visual {
-    left: 48%;
-    top: 150px;
-    width: min(500px, 48vw);
-    opacity: .58;
+    left: 49%;
+    top: 158px;
+    width: min(500px, 46vw);
+    opacity: .5;
   }
 
   .exchange-panel {
@@ -1548,13 +1558,14 @@ html[data-theme="dark"] .card.form {
     left: auto;
     top: auto;
     display: block;
-    width: min(100%, 360px);
-    margin: -8px auto 0;
-    opacity: .5;
+    width: min(88%, 320px);
+    margin: -24px auto -22px;
+    opacity: .4;
   }
 
-  .hero-transfer-lines .hero-route:nth-child(n+4),
-  .hero-transfer-points .hero-node:nth-child(n+4) {
+  .hero-transfer-lines .hero-route:nth-child(n+3),
+  .hero-transfer-points .hero-node:nth-child(n+3),
+  .hero-globe-orbit-two {
     display: none;
   }
 
