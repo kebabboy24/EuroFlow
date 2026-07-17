@@ -18,6 +18,7 @@ export type PaymentRequisites = {
 export type PaymentOrder = {
   id: string;
   status?: string | null;
+  completed_at?: string | null;
   send_amount: number;
   send_currency: string;
   receive_amount: number;
@@ -30,7 +31,7 @@ export type PaymentOrder = {
   payment_requisites?: PaymentRequisites | null;
 };
 
-const terminalStatuses = new Set(["paid", "processing", "completed", "cancelled"]);
+const terminalStatuses = new Set(["completed", "cancelled"]);
 
 const paidTimeline = [
   { title: "Заявка создана", state: "done" },
@@ -40,10 +41,30 @@ const paidTimeline = [
   { title: "Евро отправлены", state: "pending" },
 ] as const;
 
+const completedTimeline = [
+  { title: "Заявка создана", state: "done" },
+  { title: "Реквизиты выданы", state: "done" },
+  { title: "Оплата отмечена", state: "done" },
+  { title: "Оператор проверил перевод", state: "done" },
+  { title: "Средства отправлены", state: "featured" },
+] as const;
+
 function formatMoney(value: number, currency: string) {
   return `${Number(value || 0).toLocaleString("ru-RU", {
     maximumFractionDigits: currency === "USDT" ? 4 : 2,
   })} ${currency}`;
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return null;
+
+  return new Date(value).toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function statusLabel(status?: string | null) {
@@ -122,14 +143,24 @@ function CheckCircleIcon() {
   );
 }
 
-function PaidConfirmation({ order }: { order: PaymentOrder }) {
+function XCircleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="paid-success-svg">
+      <circle cx="12" cy="12" r="9" />
+      <path d="m9 9 6 6M15 9l-6 6" />
+    </svg>
+  );
+}
+
+function PaidConfirmation({ order, pollError }: { order: PaymentOrder; pollError?: string }) {
+  const processing = order.status === "processing";
   const summary = [
     { label: "Номер обмена", value: `#EF-${order.id.slice(0, 8).toUpperCase()}` },
     { label: "Вы отправили", value: formatMoney(order.send_amount, order.send_currency) },
     { label: "Вы получите", value: formatMoney(order.receive_amount, order.receive_currency) },
     { label: "Банк / способ оплаты", value: displayMethod(order) },
-    { label: "Статус", value: "Оплачено" },
-    { label: "Следующий шаг", value: "Проверка оператором" },
+    { label: "Статус", value: processing ? "В обработке" : "Оплачено" },
+    { label: "Следующий шаг", value: processing ? "Отправка средств" : "Проверка оператором" },
   ];
 
   return (
@@ -137,9 +168,15 @@ function PaidConfirmation({ order }: { order: PaymentOrder }) {
       <div className="paid-confirmation-visual" aria-hidden="true">
         <CheckCircleIcon />
       </div>
-      <span className="status-pill status-completed">Оплачено</span>
-      <h3>Оплата отмечена</h3>
-      <p>Мы получили ваше подтверждение. Оператор проверит перевод и начнёт обработку обмена.</p>
+      <span className={`status-pill ${processing ? "status-processing" : "status-completed"}`}>
+        {processing ? "В обработке" : "Оплачено"}
+      </span>
+      <h3>{processing ? "Обмен в обработке" : "Оплата отмечена"}</h3>
+      <p>
+        {processing
+          ? "Оператор проверяет перевод и готовит отправку средств по вашим реквизитам."
+          : "Мы получили ваше подтверждение. Оператор проверит перевод и начнёт обработку обмена."}
+      </p>
 
       <div className="paid-summary-grid">
         {summary.map((item) => (
@@ -151,15 +188,19 @@ function PaidConfirmation({ order }: { order: PaymentOrder }) {
       </div>
 
       <div className="paid-timeline" aria-label="Статус обмена">
-        {paidTimeline.map((item) => (
-          <div key={item.title} className={`paid-timeline-step ${item.state}`}>
-            <span />
-            <strong>{item.title}</strong>
-          </div>
-        ))}
+        {paidTimeline.map((item, index) => {
+          const state = processing && index === 3 ? "current" : item.state;
+          return (
+            <div key={item.title} className={`paid-timeline-step ${state}`}>
+              <span />
+              <strong>{processing && index === 3 ? "Оператор обрабатывает обмен" : item.title}</strong>
+            </div>
+          );
+        })}
       </div>
 
-      <p className="small paid-confirmation-note">Проверка обычно занимает 10–30 минут.</p>
+      <p className="small paid-confirmation-note">Статус обновится автоматически. Обычно обработка занимает 10–30 минут.</p>
+      {pollError && <div className="error">{pollError}</div>}
       <div className="security-warning">
         EuroFlow не запрашивает CVV, PIN, пароли банка и одноразовые SMS-коды.
       </div>
@@ -167,6 +208,81 @@ function PaidConfirmation({ order }: { order: PaymentOrder }) {
       <div className="flow-actions visible-actions paid-confirmation-actions">
         <button type="button" className="btn btn-primary" onClick={() => window.location.assign("/dashboard")}>Мои обмены</button>
         <a className="btn" href="https://t.me/" target="_blank" rel="noreferrer">Связаться с поддержкой</a>
+      </div>
+    </section>
+  );
+}
+
+function CompletedConfirmation({ order }: { order: PaymentOrder }) {
+  const completedAt = formatDateTime(order.completed_at);
+  const summary = [
+    { label: "Номер обмена", value: `#EF-${order.id.slice(0, 8).toUpperCase()}` },
+    { label: "Вы отправили", value: formatMoney(order.send_amount, order.send_currency) },
+    { label: "Вы получили", value: formatMoney(order.receive_amount, order.receive_currency) },
+    { label: "Способ получения", value: displayReceiveMethod(order) },
+    ...(completedAt ? [{ label: "Дата завершения", value: completedAt }] : []),
+  ];
+
+  return (
+    <section className="flow-panel paid-confirmation-screen completed-exchange-screen">
+      <div className="paid-confirmation-visual completed-confirmation-visual" aria-hidden="true">
+        <CheckCircleIcon />
+      </div>
+      <span className="status-pill status-completed">Выполнено</span>
+      <h3>Обмен выполнен</h3>
+      <p>Мы отправили средства по вашим реквизитам. Спасибо, что выбрали EuroFlow.</p>
+
+      <div className="paid-summary-grid completed-summary-grid">
+        {summary.map((item) => (
+          <div key={item.label}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+          </div>
+        ))}
+      </div>
+
+      <div className="paid-timeline completed-timeline" aria-label="Обмен выполнен">
+        {completedTimeline.map((item) => (
+          <div key={item.title} className={`paid-timeline-step ${item.state}`}>
+            <span />
+            <strong>{item.title}</strong>
+          </div>
+        ))}
+      </div>
+
+      <div className="flow-actions visible-actions paid-confirmation-actions completed-actions">
+        <button type="button" className="btn btn-primary" onClick={() => window.location.assign("/dashboard")}>Мои обмены</button>
+        <button type="button" className="btn" onClick={() => window.location.assign("/exchange")}>Создать новый обмен</button>
+        <a className="btn btn-ghost" href="https://t.me/" target="_blank" rel="noreferrer">Связаться с поддержкой</a>
+      </div>
+    </section>
+  );
+}
+
+function CancelledConfirmation({ order }: { order: PaymentOrder }) {
+  return (
+    <section className="flow-panel paid-confirmation-screen cancelled-exchange-screen">
+      <div className="paid-confirmation-visual cancelled-confirmation-visual" aria-hidden="true">
+        <XCircleIcon />
+      </div>
+      <span className="status-pill status-cancelled">Отменено</span>
+      <h3>Обмен отменён</h3>
+      <p>Операция остановлена. Если вы уже отправили средства, пожалуйста, свяжитесь с поддержкой.</p>
+
+      <div className="paid-summary-grid cancelled-summary-grid">
+        <div>
+          <span>Номер обмена</span>
+          <strong>#EF-{order.id.slice(0, 8).toUpperCase()}</strong>
+        </div>
+        <div>
+          <span>Направление</span>
+          <strong>{order.send_currency} → {order.receive_currency}</strong>
+        </div>
+      </div>
+
+      <div className="flow-actions visible-actions paid-confirmation-actions">
+        <a className="btn btn-primary" href="https://t.me/" target="_blank" rel="noreferrer">Связаться с поддержкой</a>
+        <button type="button" className="btn" onClick={() => window.location.assign("/dashboard")}>Мои обмены</button>
       </div>
     </section>
   );
@@ -181,7 +297,7 @@ export default function PaymentRequisitesFlow({ initialOrder }: { initialOrder: 
 
   const requisites = order.payment_requisites;
   const readyForPayment = order.status === "awaiting_payment" && hasRequisites(requisites);
-  const shouldPoll = !readyForPayment && !terminalStatuses.has(String(order.status || ""));
+  const shouldPoll = !terminalStatuses.has(String(order.status || ""));
   const comment = requisites?.comment || order.payment_reference || `EF-${order.id.slice(0, 8)}`;
 
   const summary = useMemo(
@@ -199,7 +315,8 @@ export default function PaymentRequisitesFlow({ initialOrder }: { initialOrder: 
     if (!shouldPoll) return undefined;
 
     let cancelled = false;
-    const interval = window.setInterval(async () => {
+
+    async function refreshOrder() {
       try {
         const response = await fetch(`/api/orders/${order.id}`, { cache: "no-store" });
         const result = await response.json();
@@ -212,7 +329,10 @@ export default function PaymentRequisitesFlow({ initialOrder }: { initialOrder: 
       } catch {
         if (!cancelled) setPollError("Не удалось обновить статус. Попробуем ещё раз.");
       }
-    }, 7000);
+    }
+
+    void refreshOrder();
+    const interval = window.setInterval(refreshOrder, 7000);
 
     return () => {
       cancelled = true;
@@ -245,8 +365,16 @@ export default function PaymentRequisitesFlow({ initialOrder }: { initialOrder: 
     }
   }
 
-  if (order.status === "paid") {
-    return <PaidConfirmation order={order} />;
+  if (order.status === "completed") {
+    return <CompletedConfirmation order={order} />;
+  }
+
+  if (order.status === "cancelled") {
+    return <CancelledConfirmation order={order} />;
+  }
+
+  if (order.status === "paid" || order.status === "processing") {
+    return <PaidConfirmation order={order} pollError={pollError} />;
   }
 
   if (!readyForPayment) {
