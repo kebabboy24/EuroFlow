@@ -11,7 +11,9 @@ const OPTIONAL_ORDER_COLUMNS = new Set([
   "receive_bank",
   "payout_details",
   "payment_reference",
+  "payment_requisites",
   "rate_value",
+  "paid_at",
 ]);
 
 type InsertOrderResult = {

@@ -41,6 +41,7 @@ export type OperatorOrderNotification = {
   estimated_profit?: number | null;
   rate_source?: string | null;
   comment?: string | null;
+  operator_note?: string | null;
 };
 
 export type OperatorCallbackQuery = {
@@ -94,6 +95,20 @@ function sourceLabel(source?: string | null) {
   return source ? labels[source] || source : "—";
 }
 
+function statusLabel(status?: string | null) {
+  const labels: Record<string, string> = {
+    awaiting_requisites: "Ожидает реквизиты",
+    awaiting_payment: "Ожидает оплату",
+    paid: "Оплачено",
+    processing: "В обработке",
+    completed: "Выполнено",
+    cancelled: "Отменено",
+    "Новая": "Новая",
+  };
+  const value = String(status || "awaiting_requisites");
+  return labels[value] || value;
+}
+
 function safe(value?: string | number | null) {
   const text = String(value ?? "").trim();
   return text || "—";
@@ -138,7 +153,8 @@ export function formatOperatorOrderMessage(order: OperatorOrderNotification) {
     "🟦 EuroFlow — новый обмен",
     "",
     `Заявка: ${formatOrderId(order.id)}`,
-    `Статус: ${safe(order.status || "Новая")}`,
+    `Статус: ${statusLabel(order.status)}`,
+    order.operator_note ? `Важно: ${order.operator_note}` : "",
     "",
     "Клиент",
     `Имя: ${safe(order.full_name)}`,

@@ -36,11 +36,12 @@ export async function POST(request: Request) {
       receive_bank: clean(body.receive_bank || body.bank_name, 160),
       payout_details: clean(body.payout_details || body.iban, 600),
       payment_reference: paymentReference(),
+      payment_requisites: null,
       rate_value: Number(body.rate_value),
       bank_name: clean(body.receive_bank || body.bank_name, 120),
       iban: clean(body.payout_details || body.iban, 180),
       comment: clean(body.comment, 500),
-      status: "Новая",
+      status: "awaiting_requisites",
     };
 
     if (!order.full_name || !order.telegram || !Number.isFinite(order.send_amount)) {
@@ -69,6 +70,7 @@ export async function POST(request: Request) {
       margin_percent: marginPercent,
       estimated_profit: Number(rate.estimatedProfit.toFixed(2)),
       rate_source: rate.source,
+      operator_note: "Клиент ожидает реквизиты на сайте.",
     });
     if (!telegramNotification.ok) {
       console.error("Telegram order notification failed", telegramNotification);

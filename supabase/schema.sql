@@ -21,11 +21,13 @@ create table if not exists public.orders (
   receive_bank text,
   payout_details text,
   payment_reference text,
+  payment_requisites jsonb,
   rate_value numeric,
   bank_name text not null,
   iban text not null,
   comment text,
-  status text not null default 'Новая',
+  status text not null default 'awaiting_requisites',
+  paid_at timestamptz,
   created_at timestamptz not null default now()
 );
 

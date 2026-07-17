@@ -9,7 +9,9 @@ function statusLabel(status: string | null) {
   if (["completed", "done", "выполнено"].includes(value)) return "Выполнено";
   if (["processing", "in_progress", "в обработке"].includes(value)) return "В обработке";
   if (["cancelled", "canceled", "отменено"].includes(value)) return "Отменено";
-  if (["waiting_payment", "ожидает оплаты"].includes(value)) return "Ожидает оплаты";
+  if (["awaiting_requisites", "ожидает реквизиты"].includes(value)) return "Ожидает реквизиты";
+  if (["awaiting_payment", "waiting_payment", "ожидает оплаты"].includes(value)) return "Ожидает оплату";
+  if (["paid", "оплачено"].includes(value)) return "Оплачено";
 
   return "Новая";
 }
@@ -20,7 +22,8 @@ function statusClass(status: string | null) {
   if (label === "Выполнено") return "status-completed";
   if (label === "В обработке") return "status-processing";
   if (label === "Отменено") return "status-cancelled";
-  if (label === "Ожидает оплаты") return "status-waiting";
+  if (["Ожидает реквизиты", "Ожидает оплату"].includes(label)) return "status-waiting";
+  if (label === "Оплачено") return "status-processing";
 
   return "status-new";
 }
@@ -52,7 +55,7 @@ export default async function DashboardPage({
   const params = await searchParams;
   const allOrders = orders || [];
   const processing = allOrders.filter(
-    (order) => statusLabel(order.status) === "В обработке"
+    (order) => ["Ожидает реквизиты", "Ожидает оплату", "Оплачено", "В обработке"].includes(statusLabel(order.status))
   ).length;
   const completed = allOrders.filter(
     (order) => statusLabel(order.status) === "Выполнено"

@@ -402,11 +402,12 @@ async function createOrder(message: TelegramMessage, payload: OrderPayload) {
     receive_bank: clean(enriched.receive_bank || enriched.receive_method, 160),
     payout_details: clean(enriched.payout_details, 600),
     payment_reference: reference,
+    payment_requisites: null,
     rate_value: enriched.rate_value,
     bank_name: clean(enriched.receive_bank || enriched.receive_method, 120),
     iban: clean(enriched.payout_details, 180),
     comment: clean(enriched.comment, 500),
-    status: "Новая",
+    status: "awaiting_requisites",
   };
 
   const { data, error } = await insertOrderWithSchemaFallback(supabase, order, "id");
@@ -422,6 +423,7 @@ async function createOrder(message: TelegramMessage, payload: OrderPayload) {
     margin_percent: enriched.margin_percent,
     estimated_profit: enriched.estimated_profit,
     rate_source: enriched.rate_source,
+    operator_note: "Клиент ожидает реквизиты после заявки из Telegram.",
   });
   if (!operatorNotification.ok) {
     console.error("Telegram client order operator notification failed", operatorNotification);

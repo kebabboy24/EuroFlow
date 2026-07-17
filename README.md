@@ -10,6 +10,10 @@
 
 `supabase/order-payment-methods.sql`
 
+Для flow ожидания реквизитов после создания обмена выполни:
+
+`supabase/payment-requisites-flow.sql`
+
 В Authentication → URL Configuration добавь:
 - Site URL: адрес будущего сайта Vercel
 - Redirect URL: `https://ВАШ-ДОМЕН.vercel.app/**`
@@ -32,6 +36,7 @@ npm run dev
 - `SUPABASE_SECRET_KEY`
 - `OPERATOR_TELEGRAM_BOT_TOKEN` — админ-бот, который присылает все новые обмены оператору
 - `OPERATOR_TELEGRAM_CHAT_ID` — твой chat id или id группы, куда админ-бот присылает заказы
+- `OPERATOR_API_SECRET` — секрет для защищённого добавления реквизитов оператором
 - `CLIENT_TELEGRAM_BOT_TOKEN` — клиентский бот, которому пишут пользователи
 - `CLIENT_TELEGRAM_WEBHOOK_SECRET` — секрет webhook для клиентского бота
 - `TELEGRAM_BOT_TOKEN` — legacy fallback, если новый operator/client token не задан
@@ -102,7 +107,32 @@ curl "https://api.telegram.org/bot$CLIENT_TELEGRAM_BOT_TOKEN/setWebhook" \
 
 Если тестовое сообщение пришло, `OPERATOR_TELEGRAM_BOT_TOKEN` и `OPERATOR_TELEGRAM_CHAT_ID` настроены правильно.
 
-## 7. Деплой
+## 7. Реквизиты оплаты
+
+После создания обмена клиент видит экран «Получаем реквизиты». Сайт обновляет заказ каждые несколько секунд и покажет оплату только после того, как оператор добавит реальные реквизиты.
+
+До появления админ-панели оператор может добавить реквизиты защищённым endpoint:
+
+```bash
+curl -X POST "https://ВАШ-ДОМЕН.vercel.app/api/operator/orders/ORDER_ID/requisites" \
+  -H "Content-Type: application/json" \
+  -H "x-operator-api-secret: $OPERATOR_API_SECRET" \
+  -d '{
+    "method":"card",
+    "bankName":"Сбербанк",
+    "recipientName":"Ivan Ivanov",
+    "cardNumber":"0000000000000000",
+    "phoneNumber":null,
+    "iban":null,
+    "walletAddress":null,
+    "comment":"EF-ORDER",
+    "expiresAt":"2026-07-17 18:00"
+  }'
+```
+
+Endpoint сохраняет `payment_requisites`, ставит статус `awaiting_payment`, и клиентский экран автоматически переключается на реквизиты. Реальные карты, токены и секреты нельзя хранить в коде или GitHub.
+
+## 8. Деплой
 
 Создай новый GitHub-репозиторий `euroflow-next`, загрузите файлы и импортируй его в Vercel.
 

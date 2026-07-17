@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import CurrencyIcon from "@/components/CurrencyIcon";
 import PaymentMethodIcon from "@/components/PaymentMethodIcon";
+import PaymentRequisitesFlow, { type PaymentOrder, type PaymentRequisites } from "@/components/PaymentRequisitesFlow";
 import {
   defaultMethod,
   defaultRegion,
@@ -23,10 +24,17 @@ type RateResponse = {
 
 type CreatedOrder = {
   id: string;
+  status?: string | null;
   payment_reference?: string | null;
+  payment_requisites?: PaymentRequisites | null;
   send_amount: number;
   send_currency: string;
+  receive_amount: number;
+  receive_currency: string;
   send_bank?: string | null;
+  send_method?: string | null;
+  receive_bank?: string | null;
+  receive_method?: string | null;
 };
 
 type Step = "send" | "receive" | "amount" | "review" | "instructions";
@@ -125,7 +133,6 @@ export default function OrderForm({
   const [loading, setLoading] = useState(false);
   const [loadingRate, setLoadingRate] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<CreatedOrder | null>(null);
-  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [sendCurrency, setSendCurrency] = useState(initialSendCurrency);
   const [sendRegion, setSendRegion] = useState(initialSendRegion);
   const [sendMethod, setSendMethod] = useState(initialSendMethod);
@@ -422,23 +429,7 @@ export default function OrderForm({
       )}
 
       {step === "instructions" && createdOrder && (
-        <section className="flow-panel">
-          <h3>Инструкция по оплате</h3>
-          <p>Обмен создан. Оператор проверит детали и подтвердит финальный курс.</p>
-          <div className="payment-instruction-card">
-            <div><span>Номер обмена</span><b>{createdOrder.id}</b></div>
-            <div><span>Сколько оплатить</span><b>{formatMoney(sendAmount, sendCurrency)}</b></div>
-            <div><span>Куда оплатить</span><b>{sendMethodConfig.name}</b></div>
-            <div><span>Комментарий к переводу</span><b>{createdOrder.payment_reference || `EF-${createdOrder.id.slice(0, 8)}`}</b></div>
-          </div>
-          <button type="button" className="btn btn-primary" onClick={() => setPaymentConfirmed(true)}>
-            Я оплатил
-          </button>
-          {paymentConfirmed && <div className="success">Спасибо. Оператор увидит отметку и свяжется с вами.</div>}
-          <button type="button" className="btn" onClick={() => router.push("/dashboard?created=1")}>
-            Перейти в кабинет
-          </button>
-        </section>
+        <PaymentRequisitesFlow initialOrder={createdOrder as PaymentOrder} />
       )}
 
       {error && <div className="error">{error}</div>}
