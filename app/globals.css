@@ -2061,6 +2061,146 @@ html[data-theme="dark"] .payment-method-mark {
   background: linear-gradient(145deg, rgba(245,170,23,.10), rgba(21,87,255,.05));
 }
 
+.operator-shell {
+  width: min(1280px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.operator-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, .85fr) minmax(0, 1.45fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.operator-secret-card,
+.operator-orders-card,
+.operator-form-card {
+  display: grid;
+  gap: 16px;
+}
+
+.operator-secret-card {
+  grid-column: 1 / -1;
+}
+
+.operator-secret-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.operator-secret-row input,
+.operator-requisites-form input {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0 14px;
+  color: var(--text);
+  background: var(--surface-solid);
+  font: inherit;
+}
+
+.operator-order-list {
+  display: grid;
+  gap: 10px;
+  max-height: 620px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.operator-order {
+  width: 100%;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px;
+  color: var(--text);
+  background: var(--surface-solid);
+  cursor: pointer;
+  text-align: left;
+}
+
+.operator-order.active {
+  border-color: rgba(21,87,255,.50);
+  background: linear-gradient(145deg, rgba(21,87,255,.11), rgba(18,215,199,.08));
+  box-shadow: 0 0 0 4px rgba(21,87,255,.06);
+}
+
+.operator-order span {
+  display: grid;
+  gap: 4px;
+}
+
+.operator-order small,
+.operator-selected-summary span,
+.operator-summary-grid span,
+.operator-requisites-form label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.operator-selected-summary {
+  display: grid;
+  gap: 14px;
+}
+
+.operator-selected-summary h2 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: -.04em;
+}
+
+.operator-summary-grid,
+.operator-requisites-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.operator-summary-grid div {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--soft);
+}
+
+.operator-summary-grid strong {
+  display: block;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+
+.operator-summary-grid .wide,
+.operator-requisites-form .wide {
+  grid-column: 1 / -1;
+}
+
+.operator-requisites-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.compact-empty {
+  padding: 34px 18px;
+}
+
+@media (max-width: 900px) {
+  .operator-grid,
+  .operator-summary-grid,
+  .operator-requisites-form,
+  .operator-secret-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 html[data-theme="dark"] .requisites-note {
   background: rgba(21,87,255,.12);
 }
