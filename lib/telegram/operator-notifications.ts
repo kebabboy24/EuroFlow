@@ -1,3 +1,5 @@
+import { savePaymentRequisites } from "@/lib/orders/payment-requisites";
+
 type TelegramApiResponse = {
   ok?: boolean;
   description?: string;
@@ -49,6 +51,13 @@ export type OperatorCallbackQuery = {
   data?: string;
   from?: { id: number; username?: string; first_name?: string; last_name?: string };
   message?: { chat?: { id: number | string }; message_id?: number };
+};
+
+export type OperatorTelegramMessage = {
+  message_id: number;
+  text?: string;
+  chat: { id: number | string };
+  from?: { id: number; username?: string; first_name?: string; last_name?: string };
 };
 
 export function operatorTelegramConfig() {
@@ -137,9 +146,29 @@ function operatorKeyboard(order: OperatorOrderNotification): TelegramInlineKeybo
         { text: "✅ Принять", callback_data: `operator:accept:${id}` },
         { text: "❌ Отклонить", callback_data: `operator:reject:${id}` },
       ],
+      [{ text: "🏦 Добавить реквизиты", callback_data: `operator:requisites:${id}` }],
       [writeButton],
     ],
   };
+}
+
+function requisitesTemplate(orderId: string) {
+  return [
+    "Заполните реквизиты и отправьте это сообщение обратно боту.",
+    "",
+    `/requisites ${orderId}`,
+    "method: card",
+    "bankName: Сбербанк",
+    "recipientName: Иван Иванов",
+    "cardNumber: ",
+    "phoneNumber: ",
+    "iban: ",
+    "walletAddress: ",
+    `comment: EF-${orderId.slice(0, 8).toUpperCase()}`,
+    "expiresAt: сегодня до 18:00",
+    "",
+    "Можно заполнить только нужный реквизит: карту, телефон, IBAN или кошелек.",
+  ].join("\n");
 }
 
 export function formatOperatorOrderMessage(order: OperatorOrderNotification) {
@@ -235,12 +264,69 @@ export async function sendOperatorTelegramMessage(
   }
 }
 
+async function sendOperatorChatMessage(chatId: number | string, text: string) {
+  const { token } = operatorTelegramConfig();
+  if (!token) return;
+
+  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
+  }).catch((error) => {
+    console.error("Operator Telegram chat message failed", error);
+  });
+}
+
+function isOperatorChat(chatId?: string | number) {
+  const configured = operatorTelegramConfig().chatId;
+  return Boolean(configured) && String(chatId) === String(configured);
+}
+
+function parseRequisitesMessage(text: string) {
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const first = lines[0] || "";
+  const match = first.match(/^\/requisites\s+(.+)$/i);
+  if (!match) return null;
+
+  const orderId = match[1].trim();
+  const aliases: Record<string, string> = {
+    method: "method",
+    bank: "bankName",
+    bankname: "bankName",
+    recipient: "recipientName",
+    recipientname: "recipientName",
+    card: "cardNumber",
+    cardnumber: "cardNumber",
+    phone: "phoneNumber",
+    phonenumber: "phoneNumber",
+    iban: "iban",
+    wallet: "walletAddress",
+    walletaddress: "walletAddress",
+    comment: "comment",
+    expires: "expiresAt",
+    expiresat: "expiresAt",
+  };
+  const payload: Record<string, string> = {};
+
+  for (const line of lines.slice(1)) {
+    const separator = line.indexOf(":");
+    if (separator === -1) continue;
+    const rawKey = line.slice(0, separator).trim().toLowerCase().replace(/[\s_-]/g, "");
+    const key = aliases[rawKey];
+    if (!key) continue;
+    payload[key] = line.slice(separator + 1).trim();
+  }
+
+  return { orderId, payload };
+}
+
 export async function sendOperatorOrderNotification(order: OperatorOrderNotification) {
   return sendOperatorTelegramMessage(formatOperatorOrderMessage(order), operatorKeyboard(order));
 }
 
 export async function handleOperatorCallback(callback: OperatorCallbackQuery) {
   const action = callback.data || "operator:unknown";
+  const [, command, orderId = ""] = action.split(":");
   console.log("Operator Telegram callback", {
     action,
     from: callback.from?.username || callback.from?.id,
@@ -250,15 +336,60 @@ export async function handleOperatorCallback(callback: OperatorCallbackQuery) {
   const { token } = operatorTelegramConfig();
   if (!token || !callback.id) return;
 
+  if (command === "requisites" && orderId) {
+    const chatId = callback.message?.chat?.id || operatorTelegramConfig().chatId;
+    await sendOperatorChatMessage(chatId, requisitesTemplate(orderId));
+  }
+
   await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       callback_query_id: callback.id,
-      text: "Действие зафиксировано. Обработка статусов будет добавлена в админ-панели.",
+      text: command === "requisites" ? "Шаблон реквизитов отправлен." : "Действие зафиксировано.",
       show_alert: false,
     }),
   }).catch((error) => {
     console.error("Operator callback answer failed", error);
   });
+}
+
+export async function handleOperatorMessage(message: OperatorTelegramMessage) {
+  if (!message.text) return;
+  if (!isOperatorChat(message.chat.id)) {
+    console.warn("Ignored operator bot message from unexpected chat", message.chat.id);
+    return;
+  }
+
+  if (message.text === "/start" || message.text === "/help") {
+    await sendOperatorChatMessage(message.chat.id, [
+      "EuroFlow operator bot",
+      "",
+      "Чтобы добавить реквизиты, нажмите кнопку «Добавить реквизиты» под заявкой или отправьте:",
+      "",
+      "/requisites ORDER_ID",
+      "bankName: Сбербанк",
+      "recipientName: Иван Иванов",
+      "cardNumber: 0000000000000000",
+      "comment: EF-ORDER",
+    ].join("\n"));
+    return;
+  }
+
+  const parsed = parseRequisitesMessage(message.text);
+  if (!parsed) return;
+
+  const { data, error } = await savePaymentRequisites(parsed.orderId, parsed.payload);
+
+  if (error || !data) {
+    await sendOperatorChatMessage(message.chat.id, `Не удалось сохранить реквизиты: ${error?.message || "ошибка"}`);
+    return;
+  }
+
+  await sendOperatorChatMessage(message.chat.id, [
+    "Реквизиты отправлены клиенту.",
+    "",
+    `Обмен: ${formatOrderId(data.id)}`,
+    "Статус: Ожидает оплату",
+  ].join("\n"));
 }

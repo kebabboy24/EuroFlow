@@ -36,6 +36,7 @@ npm run dev
 - `SUPABASE_SECRET_KEY`
 - `OPERATOR_TELEGRAM_BOT_TOKEN` — админ-бот, который присылает все новые обмены оператору
 - `OPERATOR_TELEGRAM_CHAT_ID` — твой chat id или id группы, куда админ-бот присылает заказы
+- `OPERATOR_TELEGRAM_WEBHOOK_SECRET` — секрет webhook для кнопок и сообщений админ-бота
 - `OPERATOR_API_SECRET` — секрет для защищённого добавления реквизитов оператором
 - `CLIENT_TELEGRAM_BOT_TOKEN` — клиентский бот, которому пишут пользователи
 - `CLIENT_TELEGRAM_WEBHOOK_SECRET` — секрет webhook для клиентского бота
@@ -82,6 +83,7 @@ Telegram tokens, webhook secret и Supabase Secret key отметь как Sensi
 
 - `OPERATOR_TELEGRAM_BOT_TOKEN` — токен нового админ-бота;
 - `OPERATOR_TELEGRAM_CHAT_ID` — твой chat id или id операторской группы;
+- `OPERATOR_TELEGRAM_WEBHOOK_SECRET` — случайная строка для защиты webhook админ-бота;
 - `CLIENT_TELEGRAM_BOT_TOKEN` — токен клиентского бота;
 - `CLIENT_TELEGRAM_WEBHOOK_SECRET` — случайная строка для защиты webhook.
 
@@ -97,7 +99,15 @@ curl "https://api.telegram.org/bot$CLIENT_TELEGRAM_BOT_TOKEN/setWebhook" \
 
 Пользователь создает обмен командой `/order`, бот пошагово собирает данные и сохраняет заказ в `orders`.
 
-Админ-боту webhook не нужен для получения заказов. Он отправляет уведомления через `sendMessage` по `OPERATOR_TELEGRAM_CHAT_ID`. Inline-кнопки под уведомлением уже добавлены; если позже подключить webhook админ-бота, безопасный placeholder находится здесь:
+Админ-бот получает заказы через `sendMessage` по `OPERATOR_TELEGRAM_CHAT_ID`. Чтобы кнопка «Добавить реквизиты» и ответы с реквизитами работали прямо в Telegram, подключи webhook админ-бота:
+
+```bash
+curl "https://api.telegram.org/bot$OPERATOR_TELEGRAM_BOT_TOKEN/setWebhook" \
+  -d "url=https://ВАШ-ДОМЕН.vercel.app/api/telegram/operator" \
+  -d "secret_token=$OPERATOR_TELEGRAM_WEBHOOK_SECRET"
+```
+
+Webhook админ-бота принимает callback-кнопки и сообщения оператора здесь:
 
 `/api/telegram/operator`
 
@@ -137,6 +147,23 @@ Endpoint сохраняет `payment_requisites`, ставит статус `awa
 `/operator`
 
 Открой её после входа на сайт, вставь `OPERATOR_API_SECRET`, загрузи активные обмены и отправь реквизиты клиенту через форму. Секрет хранится только в текущей вкладке браузера и не попадает в клиентский код.
+
+Если хочешь работать только через админ-бота, нажми под уведомлением заказа кнопку «Добавить реквизиты». Бот пришлёт шаблон. Заполни его и отправь обратно, например:
+
+```text
+/requisites ORDER_ID
+method: card
+bankName: Сбербанк
+recipientName: Иван Иванов
+cardNumber: 0000000000000000
+phoneNumber:
+iban:
+walletAddress:
+comment: EF-ORDER
+expiresAt: сегодня до 18:00
+```
+
+После этого заказ станет `awaiting_payment`, а клиент на сайте автоматически увидит реквизиты.
 
 ## 8. Деплой
 
