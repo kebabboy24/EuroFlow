@@ -1776,12 +1776,12 @@ html[data-theme="dark"] .card.form {
 .payment-method-icon {
   --method-color: var(--primary);
   --method-bg: rgba(21,87,255,.10);
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border-radius: 20px;
+  border-radius: 16px;
   color: var(--method-color);
   background: var(--method-bg);
   box-shadow: inset 0 0 0 1px rgba(123, 139, 170, .16);
@@ -1793,18 +1793,18 @@ html[data-theme="dark"] .card.form {
 }
 
 .payment-method-icon img {
-  width: 76%;
-  height: 76%;
-  max-width: 82%;
-  max-height: 82%;
+  width: 68%;
+  height: 68%;
+  max-width: 68%;
+  max-height: 68%;
   display: block;
   object-fit: var(--method-fit, contain);
   transform: scale(var(--method-scale, 1));
 }
 
 .payment-method-mark {
-  width: 76%;
-  height: 76%;
+  width: 68%;
+  height: 68%;
   display: grid;
   place-items: center;
   border-radius: 12px;
@@ -1831,13 +1831,13 @@ html[data-theme="dark"] .payment-method-mark {
 
 @media (max-width: 760px) {
   .payment-method-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 18px;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
   }
 
   .method-option {
-    min-height: 70px;
+    min-height: 64px;
   }
 }
 
