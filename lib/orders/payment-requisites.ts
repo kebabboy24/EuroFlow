@@ -98,9 +98,10 @@ export async function savePaymentRequisites(orderId: string, input: Record<strin
   if (validationError) return { data: null, error: { message: validationError } };
 
   const supabase = createAdminClient();
+  const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("orders")
-    .update({ payment_requisites, status: "awaiting_payment" })
+    .update({ payment_requisites, status: "awaiting_payment", updated_at: now })
     .eq("id", String(orderId).trim())
     .select("*")
     .single();

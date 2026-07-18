@@ -7,7 +7,7 @@ type TelegramApiResponse = {
   error_code?: number;
 };
 
-type TelegramInlineKeyboard = {
+export type TelegramInlineKeyboard = {
   inline_keyboard: Array<Array<{ text: string; callback_data?: string; url?: string }>>;
 };
 
@@ -151,7 +151,7 @@ function operatorKeyboard(order: OperatorOrderNotification): TelegramInlineKeybo
         { text: "✅ Принять", callback_data: `operator:accept:${id}` },
         { text: "❌ Отклонить", callback_data: `operator:reject:${id}` },
       ],
-      [{ text: "🏦 Добавить реквизиты", callback_data: `operator:requisites:${id}` }],
+      [{ text: "Добавить реквизиты", callback_data: `op:req:start:${id}` }],
       [writeButton],
     ],
   };
@@ -318,20 +318,29 @@ export async function sendOperatorTelegramMessage(
   }
 }
 
-async function sendOperatorChatMessage(chatId: number | string, text: string) {
+export async function sendOperatorChatMessage(
+  chatId: number | string,
+  text: string,
+  replyMarkup?: TelegramInlineKeyboard
+) {
   const { token } = operatorTelegramConfig();
   if (!token) return;
 
   await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      disable_web_page_preview: true,
+      reply_markup: replyMarkup,
+    }),
   }).catch((error) => {
     console.error("Operator Telegram chat message failed", error);
   });
 }
 
-async function answerOperatorCallback(callbackId: string, text: string, showAlert = false) {
+export async function answerOperatorCallback(callbackId: string, text: string, showAlert = false) {
   const { token } = operatorTelegramConfig();
   if (!token || !callbackId) return;
 
@@ -344,7 +353,7 @@ async function answerOperatorCallback(callbackId: string, text: string, showAler
   });
 }
 
-function isOperatorChat(chatId?: string | number) {
+export function isOperatorChat(chatId?: string | number) {
   const configured = operatorTelegramConfig().chatId;
   return Boolean(configured) && String(chatId) === String(configured);
 }

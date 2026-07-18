@@ -5,6 +5,10 @@ import {
   type OperatorCallbackQuery,
   type OperatorTelegramMessage,
 } from "@/lib/telegram/operator-notifications";
+import {
+  handleOperatorRequisitesCallback,
+  handleOperatorRequisitesMessage,
+} from "@/lib/telegram/operator-requisites-wizard";
 
 type OperatorTelegramUpdate = {
   callback_query?: OperatorCallbackQuery;
@@ -31,11 +35,13 @@ export async function POST(request: Request) {
     const update = (await request.json()) as OperatorTelegramUpdate;
 
     if (update.callback_query) {
-      await handleOperatorCallback(update.callback_query);
+      const handled = await handleOperatorRequisitesCallback(update.callback_query);
+      if (!handled) await handleOperatorCallback(update.callback_query);
     }
 
     if (update.message?.text) {
-      await handleOperatorMessage(update.message);
+      const handled = await handleOperatorRequisitesMessage(update.message);
+      if (!handled) await handleOperatorMessage(update.message);
     }
 
     return NextResponse.json({ ok: true });
