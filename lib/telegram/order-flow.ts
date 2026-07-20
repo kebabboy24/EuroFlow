@@ -120,6 +120,14 @@ function methodNames(currency: string) {
   return region.methods.map((method) => method.name);
 }
 
+function receiveCurrencyNames(payload: OrderPayload) {
+  return RECEIVE_CURRENCIES.filter((currency) => currency !== payload.send_currency);
+}
+
+function formatReceiveAmount(value: number | undefined, currency: string | undefined) {
+  return Number(value || 0).toFixed(currency === "USDT" ? 4 : 2);
+}
+
 function keyboardRows(values: string[]) {
   const rows: string[][] = [];
   for (let index = 0; index < values.length; index += 2) {
@@ -161,7 +169,7 @@ function promptForStep(step: OrderStep, payload: OrderPayload) {
     receive_currency: [
       "Шаг 5 из 9. Валюта получения",
       "",
-      `Выберите, что хотите получить: ${RECEIVE_CURRENCIES.join(", ")}`,
+      `Выберите, что хотите получить: ${receiveCurrencyNames(payload).join(", ")}`,
     ].join("\n"),
     receive_method: [
       "Шаг 6 из 9. Куда получить",
@@ -172,8 +180,12 @@ function promptForStep(step: OrderStep, payload: OrderPayload) {
     payout_details: [
       "Шаг 7 из 9. Реквизиты получения",
       "",
-      "Введите только реквизиты для получения: IBAN, номер карты или wallet.",
-      "Не отправляйте CVV, PIN, пароли банка и SMS-коды.",
+      receiveCurrency === "USDT"
+        ? "Введите адрес кошелька в выбранной сети."
+        : "Введите только реквизиты для получения: IBAN, номер карты или счёт.",
+      receiveCurrency === "USDT"
+        ? "Проверьте сеть перед отправкой. Ошибка сети может привести к потере средств."
+        : "Не отправляйте CVV, PIN, пароли банка и SMS-коды.",
     ].join("\n"),
     send_amount: [
       "Шаг 8 из 9. Сумма",
@@ -202,7 +214,7 @@ function orderSummary(payload: OrderPayload, from?: TelegramUser) {
     `Telegram: ${telegramHandle(from)}`,
     `Клиент отправляет: ${payload.send_amount} ${payload.send_currency}`,
     `Банк/метод отправки: ${payload.send_bank || payload.send_method}`,
-    `Клиент получает: ${payload.receive_amount?.toFixed(2)} ${payload.receive_currency}`,
+    `Клиент получает: ${formatReceiveAmount(payload.receive_amount, payload.receive_currency)} ${payload.receive_currency}`,
     `Банк/метод получения: ${payload.receive_bank || payload.receive_method}`,
     `Реквизиты получения: ${payload.payout_details}`,
     payload.rate_value ? `Курс EuroFlow: 1 ${payload.send_currency} = ${formatRate(payload.rate_value)} ${payload.receive_currency}` : "Курс: будет уточнён",
@@ -323,7 +335,7 @@ function keyboardForStep(step: OrderStep, payload: OrderPayload): TelegramReplyM
     return { keyboard: keyboardRows(methodNames(payload.send_currency || "RUB")), resize_keyboard: true, one_time_keyboard: true };
   }
   if (step === "receive_currency") {
-    return { keyboard: keyboardRows(RECEIVE_CURRENCIES), resize_keyboard: true, one_time_keyboard: true };
+    return { keyboard: keyboardRows(receiveCurrencyNames(payload)), resize_keyboard: true, one_time_keyboard: true };
   }
   if (step === "receive_method") {
     return { keyboard: keyboardRows(methodNames(payload.receive_currency || "EUR")), resize_keyboard: true, one_time_keyboard: true };
@@ -362,12 +374,11 @@ async function enrichRate(payload: OrderPayload) {
     from: payload.send_currency,
     to: payload.receive_currency,
     amount: payload.send_amount,
-    direction: "buy_eur",
   });
 
   return {
     ...payload,
-    receive_amount: Number(rate.receiveAmount.toFixed(2)),
+    receive_amount: Number(rate.receiveAmount.toFixed(payload.receive_currency === "USDT" ? 4 : 2)),
     rate_value: Number(rate.finalRate.toFixed(8)),
     base_rate: Number(rate.baseRate.toFixed(8)),
     margin_percent: Number(rate.marginPercent.toFixed(1)),
@@ -480,7 +491,8 @@ async function handleStep(message: TelegramMessage, session: TelegramOrderSessio
 
   if (session.step === "receive_currency") {
     const currency = text.toUpperCase();
-    if (!RECEIVE_CURRENCIES.includes(currency)) errorMessage = `Выберите валюту: ${RECEIVE_CURRENCIES.join(", ")}.`;
+    const availableCurrencies = receiveCurrencyNames(payload);
+    if (!availableCurrencies.includes(currency)) errorMessage = `Выберите валюту: ${availableCurrencies.join(", ")}.`;
     else {
       const region = defaultRegion(currency).id;
       payload.receive_currency = currency;

@@ -7,7 +7,7 @@ type IconName = "plus" | "check" | "plane" | "currency" | "bolt" | "lock" | "per
 const trustItems: { icon: IconName; title: string; description: string }[] = [
   { icon: "bolt", title: "Быстро", description: "Обычно 10–30 минут" },
   { icon: "lock", title: "Безопасно", description: "Защита данных и средств" },
-  { icon: "percent", title: "Выгодно", description: "P2P-ориентир и маржа" },
+  { icon: "percent", title: "Выгодно", description: "Выгодный курс EuroFlow" },
   { icon: "support", title: "Поддержка 24/7", description: "Мы всегда на связи" },
 ];
 
@@ -15,7 +15,7 @@ const steps: { number: string; icon: IconName; title: string; description: strin
   { number: "01", icon: "plus", title: "Начните обмен", description: "Укажите сумму, валюту и реквизиты." },
   { number: "02", icon: "check", title: "Подтвердите детали", description: "Оператор фиксирует курс." },
   { number: "03", icon: "plane", title: "Отправьте средства", description: "Переведите деньги по реквизитам." },
-  { number: "04", icon: "currency", title: "Получите евро", description: "Перевод поступает на карту или IBAN." },
+  { number: "04", icon: "currency", title: "Получите средства", description: "В EUR, USD или USDT выбранным способом." },
 ];
 
 function SiteIcon({ name }: { name: IconName }) {
@@ -105,8 +105,8 @@ export default function HomePage() {
             <span>быстро и безопасно</span>
           </h1>
           <p className="lead">
-            Принимаем RUB, UAH, KZT, GEL и USDT и переводим евро на вашу карту в Европе.
-            P2P-ориентир, понятная маржа и поддержка на русском.
+            Принимаем RUB, UAH, KZT, GEL и другие валюты, а вы получаете EUR, USD или USDT.
+            Курс EuroFlow на основе P2P-рынка и поддержка на русском.
           </p>
           <div className="hero-actions">
             <Link className="btn btn-primary" href="/exchange">

@@ -8,6 +8,8 @@ function clean(value: unknown, max = 300) {
   return String(value ?? "").trim().slice(0, max);
 }
 
+const allowedReceiveCurrencies = new Set(["EUR", "USD", "USDT"]);
+
 function paymentReference() {
   return `EF-${Date.now().toString(36).toUpperCase()}`;
 }
@@ -47,13 +49,19 @@ export async function POST(request: Request) {
     if (!order.full_name || !order.telegram || !Number.isFinite(order.send_amount)) {
       return NextResponse.json({ error: "Заполните обязательные поля." }, { status: 400 });
     }
+    if (!allowedReceiveCurrencies.has(order.receive_currency)) {
+      return NextResponse.json({ error: "Выберите EUR, USD или USDT для получения." }, { status: 400 });
+    }
+    if (order.send_currency === order.receive_currency) {
+      return NextResponse.json({ error: "Валюты отправки и получения должны отличаться." }, { status: 400 });
+    }
 
     const rate = await calculateRate({
       from: order.send_currency,
       to: order.receive_currency,
       amount: order.send_amount,
     });
-    order.receive_amount = Number(rate.receiveAmount.toFixed(2));
+    order.receive_amount = Number(rate.receiveAmount.toFixed(order.receive_currency === "USDT" ? 4 : 2));
     order.rate_value = Number(rate.finalRate.toFixed(8));
     const marginPercent = Number(rate.marginPercent.toFixed(1));
 

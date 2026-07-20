@@ -203,12 +203,12 @@ export const paymentMethods: CurrencyPaymentConfig[] = [
         id: "global_usd",
         name: "Международно",
         methods: [
+          { id: "card_usd", name: "Bank card", iconKey: "card", popular: true, requiredFields: [cardDetails] },
           { id: "swift_usd", name: "SWIFT", iconKey: "swift", popular: true, requiredFields: [swiftDetails] },
           { id: "wise_usd", name: "Wise", iconSrc: "/banks/wise.webp", iconKey: "wise", iconScale: 1.08, popular: true, requiredFields: [payoutDetails] },
           { id: "revolut_usd", name: "Revolut", iconSrc: "/banks/revolut.png", iconKey: "revolut", iconScale: 1.02, popular: true, requiredFields: [payoutDetails] },
-          { id: "bank_transfer_usd", name: "Bank transfer", iconKey: "bankTransfer", requiredFields: [swiftDetails] },
-          { id: "cash_usd", name: "Cash pickup", iconKey: "cash", requiredFields: [payoutDetails] },
-          otherMethod,
+          { id: "bank_transfer_usd", name: "US bank transfer", iconKey: "bankTransfer", requiredFields: [swiftDetails] },
+          { ...otherMethod, requiredFields: [payoutDetails] },
         ],
       },
     ],
@@ -254,7 +254,9 @@ export const paymentMethods: CurrencyPaymentConfig[] = [
 ];
 
 export const sendCurrencies = paymentMethods.map(({ code, name }) => ({ code, name }));
-export const receiveCurrencies = paymentMethods.filter(({ code }) => ["EUR", "USDT", "USD"].includes(code));
+export const receiveCurrencies = ["EUR", "USD", "USDT"]
+  .map((code) => paymentMethods.find((currency) => currency.code === code))
+  .filter((currency): currency is CurrencyPaymentConfig => Boolean(currency));
 
 export function currencyConfig(code: string) {
   return paymentMethods.find((currency) => currency.code === code) || paymentMethods[0];

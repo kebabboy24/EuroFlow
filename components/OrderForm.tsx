@@ -43,8 +43,8 @@ const stepOrder: Step[] = ["send", "receive", "amount", "review", "instructions"
 
 const sourceLabel: Record<RateResponse["source"], string> = {
   binance_p2p: "P2P market",
-  bybit_p2p: "Bybit P2P",
-  manual_fallback: "ручной курс",
+  bybit_p2p: "P2P market",
+  manual_fallback: "EuroFlow rate",
 };
 
 function formatMoney(value: number, currency: string) {
@@ -109,11 +109,13 @@ function MethodPicker({
 
 export default function OrderForm({
   initialCurrency,
+  initialReceiveCurrency,
   initialAmount,
   initialReceive,
   userEmail,
 }: {
   initialCurrency: string;
+  initialReceiveCurrency: string;
   initialAmount: string;
   initialReceive: string;
   userEmail: string;
@@ -123,9 +125,13 @@ export default function OrderForm({
     : "RUB";
   const initialSendRegion = defaultRegion(initialSendCurrency).id;
   const initialSendMethod = defaultMethod(initialSendCurrency, initialSendRegion).id;
-  const initialReceiveCurrency = "EUR";
-  const initialReceiveRegion = defaultRegion(initialReceiveCurrency).id;
-  const initialReceiveMethod = defaultMethod(initialReceiveCurrency, initialReceiveRegion).id;
+  const validatedReceiveCurrency = receiveCurrencies.some(
+    (item) => item.code === initialReceiveCurrency && item.code !== initialSendCurrency
+  )
+    ? initialReceiveCurrency
+    : initialSendCurrency === "EUR" ? "USD" : "EUR";
+  const initialReceiveRegion = defaultRegion(validatedReceiveCurrency).id;
+  const initialReceiveMethod = defaultMethod(validatedReceiveCurrency, initialReceiveRegion).id;
 
   const [step, setStep] = useState<Step>("send");
   const [error, setError] = useState("");
@@ -136,7 +142,7 @@ export default function OrderForm({
   const [sendCurrency, setSendCurrency] = useState(initialSendCurrency);
   const [sendRegion, setSendRegion] = useState(initialSendRegion);
   const [sendMethod, setSendMethod] = useState(initialSendMethod);
-  const [receiveCurrency, setReceiveCurrency] = useState(initialReceiveCurrency);
+  const [receiveCurrency, setReceiveCurrency] = useState(validatedReceiveCurrency);
   const [receiveRegion, setReceiveRegion] = useState(initialReceiveRegion);
   const [receiveMethod, setReceiveMethod] = useState(initialReceiveMethod);
   const [sendAmount, setSendAmount] = useState(Number(initialAmount) || 0);
@@ -156,6 +162,7 @@ export default function OrderForm({
     placeholder: "IBAN, карта, кошелёк или другой реквизит",
   };
   const showIbanHelp = payoutField.label.toLowerCase().includes("iban");
+  const isUsdtReceive = receiveCurrency === "USDT";
   const currentStepIndex = stepOrder.indexOf(step);
 
   useEffect(() => {
@@ -164,6 +171,12 @@ export default function OrderForm({
     setSendRegion(nextRegion);
     setSendMethod(nextMethod);
   }, [sendCurrency]);
+
+  useEffect(() => {
+    if (receiveCurrency === sendCurrency) {
+      setReceiveCurrency(receiveCurrencies.find((item) => item.code !== sendCurrency)?.code || "EUR");
+    }
+  }, [receiveCurrency, sendCurrency]);
 
   useEffect(() => {
     setSendMethod(defaultMethod(sendCurrency, sendRegion).id);
@@ -198,7 +211,6 @@ export default function OrderForm({
           from: sendCurrency,
           to: receiveCurrency,
           amount: String(sendAmount || 0),
-          direction: "buy_eur",
         });
         const response = await fetch(`/api/rates?${params.toString()}`, {
           signal: controller.signal,
@@ -338,7 +350,7 @@ export default function OrderForm({
           <h3>Куда получить</h3>
           <p>Введите только реквизиты для получения. Не указывайте CVV, PIN, пароли или SMS-коды.</p>
           <div className="currency-choice-grid compact">
-            {receiveCurrencies.map((currency) => (
+            {receiveCurrencies.filter((currency) => currency.code !== sendCurrency).map((currency) => (
               <button
                 type="button"
                 key={currency.code}
@@ -352,6 +364,12 @@ export default function OrderForm({
           </div>
 
           <MethodPicker currency={receiveCurrency} region={receiveRegion} value={receiveMethod} onChange={setReceiveMethod} />
+
+          {isUsdtReceive && (
+            <div className="crypto-network-warning" role="note">
+              Проверьте сеть перед отправкой. Ошибка сети может привести к потере средств.
+            </div>
+          )}
 
           <label className="flow-label">
             <span className="flow-label-row">

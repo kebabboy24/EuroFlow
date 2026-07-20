@@ -38,7 +38,7 @@ const paidTimeline = [
   { title: "Реквизиты выданы", state: "done" },
   { title: "Оплата отмечена", state: "done" },
   { title: "Оператор проверяет перевод", state: "current" },
-  { title: "Евро отправлены", state: "pending" },
+  { title: "Средства отправлены", state: "pending" },
 ] as const;
 
 const completedTimeline = [

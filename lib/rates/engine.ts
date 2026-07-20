@@ -1,4 +1,9 @@
-import { rateConfig, isSupportedCurrency } from "@/lib/rates/config";
+import {
+  rateConfig,
+  isP2PLocalCurrency,
+  isSupportedCurrency,
+  type P2PLocalCurrency,
+} from "@/lib/rates/config";
 import { applyHiddenMargin, calculateEstimatedProfit } from "@/lib/rates/margin";
 import {
   fetchBinanceP2P,
@@ -27,6 +32,8 @@ export type RateResult = {
   updatedAt: string;
 };
 
+type P2PConfig = (typeof rateConfig.p2p)[P2PLocalCurrency];
+
 function median(values: number[]) {
   const sorted = [...values].sort((a, b) => a - b);
   const middle = Math.floor(sorted.length / 2);
@@ -44,8 +51,12 @@ function normalizeCompletionRate(value?: number) {
   return value > 1 ? value / 100 : value;
 }
 
-function filteredAds(ads: P2PAd[], amount: number, fallbackFiatPerAsset: number) {
-  const cfg = rateConfig.p2p.RUB;
+function filteredAds(
+  ads: P2PAd[],
+  amount: number,
+  fallbackFiatPerAsset: number,
+  cfg: P2PConfig
+) {
   const prices = ads.map((ad) => ad.price).filter((price) => price > 0);
   const marketMedian = prices.length ? median(prices) : fallbackFiatPerAsset;
   const minPrice = fallbackFiatPerAsset * 0.65;
@@ -71,8 +82,7 @@ function filteredAds(ads: P2PAd[], amount: number, fallbackFiatPerAsset: number)
   });
 }
 
-function pickSample(ads: P2PAd[], tradeType: P2PTradeType) {
-  const cfg = rateConfig.p2p.RUB;
+function pickSample(ads: P2PAd[], tradeType: P2PTradeType, cfg: P2PConfig) {
   const sorted = [...ads].sort((a, b) =>
     tradeType === "SELL" ? a.price - b.price : b.price - a.price
   );
@@ -151,8 +161,12 @@ function buildRateResult({
   };
 }
 
-async function p2pRubRate(amount: number, direction: RateDirection) {
-  const cfg = rateConfig.p2p.RUB;
+async function p2pLocalRate(
+  currency: P2PLocalCurrency,
+  amount: number,
+  direction: RateDirection
+) {
+  const cfg = rateConfig.p2p[currency];
   const tradeType: P2PTradeType = direction === "buy_eur" ? "SELL" : "BUY";
   const providerErrors: string[] = [];
 
@@ -166,14 +180,15 @@ async function p2pRubRate(amount: number, direction: RateDirection) {
         amount,
       });
       const fallbackFiatPerAsset = cfg.fallbackFiatPerEur * cfg.assetToEurRate;
-      const cleanAds = filteredAds(ads, amount, fallbackFiatPerAsset);
-      const sample = pickSample(cleanAds, tradeType);
+      const cleanAds = filteredAds(ads, amount, fallbackFiatPerAsset, cfg);
+      const sample = pickSample(cleanAds, tradeType, cfg);
 
       if (sample.length) {
         const prices = sample.map((ad) => ad.price);
         const fiatPerAsset = prices.length === 3 ? median(prices) : average(prices);
         return {
-          fiatPerEur: fiatPerAsset / cfg.assetToEurRate,
+          fiatPerAsset,
+          assetToEurRate: cfg.assetToEurRate,
           sampledAds: sample.length,
           source: provider === fetchBinanceP2P ? "binance_p2p" : "bybit_p2p",
           providerErrors,
@@ -189,7 +204,8 @@ async function p2pRubRate(amount: number, direction: RateDirection) {
   }
 
   return {
-    fiatPerEur: cfg.fallbackFiatPerEur,
+    fiatPerAsset: cfg.fallbackFiatPerEur * cfg.assetToEurRate,
+    assetToEurRate: cfg.assetToEurRate,
     sampledAds: 0,
     source: "manual_fallback" as const,
     providerErrors,
@@ -213,11 +229,13 @@ export async function calculateRate({
   const resolvedDirection: RateDirection =
     direction || (normalizedFrom === "EUR" ? "sell_eur" : "buy_eur");
 
-  if (normalizedFrom === "RUB") {
-    const p2p = await p2pRubRate(safeAmount, "buy_eur");
-    const eurPerRub = 1 / p2p.fiatPerEur;
+  if (isP2PLocalCurrency(normalizedFrom)) {
+    const p2p = await p2pLocalRate(normalizedFrom, safeAmount, "buy_eur");
+    const eurPerLocalCurrency = p2p.assetToEurRate / p2p.fiatPerAsset;
     const baseRate =
-      normalizedTo === "EUR" ? eurPerRub : convertEurAmountToTarget(eurPerRub, normalizedTo);
+      normalizedTo === "EUR"
+        ? eurPerLocalCurrency
+        : convertEurAmountToTarget(eurPerLocalCurrency, normalizedTo);
 
     return buildRateResult({
       from: normalizedFrom,
@@ -232,14 +250,14 @@ export async function calculateRate({
   }
 
   if (normalizedFrom === "EUR" && normalizedTo === "RUB") {
-    const p2p = await p2pRubRate(safeAmount, "sell_eur");
+    const p2p = await p2pLocalRate("RUB", safeAmount, "sell_eur");
 
     return buildRateResult({
       from: normalizedFrom,
       to: normalizedTo,
       amount: safeAmount,
       direction: "sell_eur",
-      baseRate: p2p.fiatPerEur,
+      baseRate: p2p.fiatPerAsset / p2p.assetToEurRate,
       source: p2p.source,
       sampledAds: p2p.sampledAds,
       providerErrors: p2p.providerErrors,

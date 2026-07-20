@@ -46,7 +46,9 @@ npm run dev
 - `EUROFLOW_RUB_PER_EUR_FALLBACK` — ручной fallback RUB/EUR, если P2P API недоступны
 - `EUROFLOW_P2P_RUB_ASSET` — P2P-актив для RUB, по умолчанию USDT
 - `EUROFLOW_P2P_RUB_ASSET_TO_EUR` — курс P2P-актива к EUR для пересчёта RUB/EUR
-- `EUROFLOW_P2P_MIN_RUB_LIMIT` — минимальный лимит объявления для фильтра P2P
+- `EUROFLOW_P2P_MIN_RUB_LIMIT` — минимальный лимит RUB-объявления для фильтра P2P
+- `EUROFLOW_UAH_TO_EUR_FALLBACK`, `EUROFLOW_KZT_TO_EUR_FALLBACK`, `EUROFLOW_GEL_TO_EUR_FALLBACK`, `EUROFLOW_TRY_TO_EUR_FALLBACK` — ручные fallback-курсы
+- `EUROFLOW_USD_TO_EUR_FALLBACK`, `EUROFLOW_USDT_TO_EUR_FALLBACK` — кросс-курсы для расчёта получения USD/USDT
 
 Telegram tokens, webhook secret и Supabase Secret key отметь как Sensitive. Никогда не коммить реальные токены в GitHub.
 
@@ -64,7 +66,7 @@ Telegram tokens, webhook secret и Supabase Secret key отметь как Sensi
 
 `/api/rates?from=RUB&to=EUR&amount=100000&direction=buy_eur`
 
-Для RUB engine пытается получить P2P-объявления Binance, затем Bybit. По умолчанию используется ликвидная пара `USDT/RUB`, затем ориентир переводится в RUB/EUR через `EUROFLOW_P2P_RUB_ASSET_TO_EUR`. Объявления фильтруются по лимитам, отклонению от медианы, подозрительным ценам, completion rate и количеству сделок, затем берутся позиции 5–7 и применяется маржа EuroFlow. Если P2P API недоступны, используется `EUROFLOW_RUB_PER_EUR_FALLBACK`.
+Для RUB, UAH, KZT, GEL и TRY engine пытается получить P2P-объявления Binance, затем Bybit. Базовый маршрут использует локальную валюту к USDT; для EUR и USD применяется кросс-курс. Объявления фильтруются по лимитам, отклонению от медианы, подозрительным ценам, completion rate и количеству сделок, затем берутся позиции 5–7 и применяется скрытая маржа EuroFlow. Если P2P API недоступны, используются ручные fallback-курсы из environment variables.
 
 Маржа задаётся через `EUROFLOW_RATE_MARGIN_PERCENT` и ограничена диапазоном 5–7%.
 

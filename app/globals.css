@@ -2686,3 +2686,15 @@ html[data-theme="dark"] .brand-logo-dark {
   opacity: 1;
   transform: translate(-50%, 0);
 }
+
+
+.crypto-network-warning {
+  padding: 12px 14px;
+  border: 1px solid rgba(245, 158, 11, .35);
+  border-radius: 8px;
+  background: rgba(245, 158, 11, .09);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.5;
+}

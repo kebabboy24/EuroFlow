@@ -205,9 +205,9 @@ export default async function DashboardPage({
                         {Number(order.send_amount).toLocaleString("ru-RU")}{" "}
                         {order.send_currency} →{" "}
                         {Number(order.receive_amount).toLocaleString("ru-RU", {
-                          maximumFractionDigits: 2,
+                          maximumFractionDigits: order.receive_currency === "USDT" ? 4 : 2,
                         })}{" "}
-                        EUR
+                        {order.receive_currency || "EUR"}
                       </small>
                     </div>
 

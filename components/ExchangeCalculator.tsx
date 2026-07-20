@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import CurrencySelect, {
-  type CurrencyOption,
-} from "@/components/CurrencySelect";
+import CurrencySelect, { type CurrencyOption } from "@/components/CurrencySelect";
 
 const currencies: CurrencyOption[] = [
   { code: "RUB", name: "Российский рубль" },
@@ -21,7 +19,11 @@ const currencies: CurrencyOption[] = [
   { code: "USDT", name: "Tether" },
 ];
 
-const euroOption: CurrencyOption[] = [{ code: "EUR", name: "Евро" }];
+const receiveCurrencies: CurrencyOption[] = [
+  { code: "EUR", name: "Евро" },
+  { code: "USD", name: "Доллар США" },
+  { code: "USDT", name: "Tether" },
+];
 
 type RateResponse = {
   rate: number;
@@ -33,17 +35,32 @@ type RateResponse = {
 
 const sourceLabel: Record<RateResponse["source"], string> = {
   binance_p2p: "P2P market",
-  bybit_p2p: "Bybit P2P",
-  manual_fallback: "Manual rate",
+  bybit_p2p: "P2P market",
+  manual_fallback: "EuroFlow rate",
 };
+
+function amountDigits(currency: string) {
+  return currency === "USDT" ? 4 : 2;
+}
 
 export default function ExchangeCalculator() {
   const router = useRouter();
   const [currency, setCurrency] = useState("RUB");
+  const [receiveCurrency, setReceiveCurrency] = useState("EUR");
   const [amount, setAmount] = useState(100000);
   const [rate, setRate] = useState<RateResponse | null>(null);
   const [loadingRate, setLoadingRate] = useState(false);
   const [rateError, setRateError] = useState("");
+  const availableReceiveCurrencies = useMemo(
+    () => receiveCurrencies.filter((item) => item.code !== currency),
+    [currency]
+  );
+
+  useEffect(() => {
+    if (receiveCurrency === currency) {
+      setReceiveCurrency(receiveCurrencies.find((item) => item.code !== currency)?.code || "EUR");
+    }
+  }, [currency, receiveCurrency]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -54,22 +71,19 @@ export default function ExchangeCalculator() {
       try {
         const params = new URLSearchParams({
           from: currency,
-          to: "EUR",
+          to: receiveCurrency,
           amount: String(amount || 0),
-          direction: "buy_eur",
         });
         const response = await fetch(`/api/rates?${params.toString()}`, {
           signal: controller.signal,
         });
         const result = await response.json();
 
-        if (!response.ok) {
-          throw new Error(result.error || "Не удалось обновить курс.");
-        }
-
+        if (!response.ok) throw new Error(result.error || "Не удалось обновить курс.");
         setRate(result);
       } catch (error) {
         if (!controller.signal.aborted) {
+          setRate(null);
           setRateError(error instanceof Error ? error.message : "Курс недоступен.");
         }
       } finally {
@@ -81,9 +95,10 @@ export default function ExchangeCalculator() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [amount, currency]);
+  }, [amount, currency, receiveCurrency]);
 
   const result = rate?.receiveAmount || 0;
+  const digits = amountDigits(receiveCurrency);
   const quickValues =
     currency === "RUB"
       ? [25000, 50000, 100000, 250000]
@@ -94,43 +109,22 @@ export default function ExchangeCalculator() {
   return (
     <section className="exchange-panel">
       <div className="exchange-head">
-        <div>
-          <small>Новый обмен</small>
-          <h2>Создать обмен</h2>
-        </div>
+        <div><small>Новый обмен</small><h2>Создать обмен</h2></div>
         <span>{loadingRate ? "Обновляем курс" : "Курс EuroFlow"}</span>
       </div>
 
       <div className="exchange-field">
         <label>Откуда отправляете</label>
-
         <div className="currency-money-row">
-          <CurrencySelect
-            value={currency}
-            options={currencies}
-            onChange={setCurrency}
-          />
-
+          <CurrencySelect value={currency} options={currencies} onChange={setCurrency} />
           <div className="amount-input-wrap">
-            <input
-              type="number"
-              value={amount}
-              min="0"
-              onChange={(event) => setAmount(Number(event.target.value) || 0)}
-              aria-label="Сумма отправления"
-            />
+            <input type="number" value={amount} min="0" onChange={(event) => setAmount(Number(event.target.value) || 0)} aria-label="Сумма отправления" />
             <span>{currency}</span>
           </div>
         </div>
-
         <div className="quick-values">
           {quickValues.map((value) => (
-            <button
-              type="button"
-              key={value}
-              className={amount === value ? "active" : ""}
-              onClick={() => setAmount(value)}
-            >
+            <button type="button" key={value} className={amount === value ? "active" : ""} onClick={() => setAmount(value)}>
               {value.toLocaleString("ru-RU")}
             </button>
           ))}
@@ -141,37 +135,18 @@ export default function ExchangeCalculator() {
 
       <div className="exchange-field">
         <label>Куда получить</label>
-
         <div className="currency-money-row">
-          <CurrencySelect
-            value="EUR"
-            options={euroOption}
-            onChange={() => undefined}
-            disabled
-          />
-
+          <CurrencySelect value={receiveCurrency} options={availableReceiveCurrencies} onChange={setReceiveCurrency} />
           <div className="amount-input-wrap">
-            <input
-              value={loadingRate ? "..." : result.toFixed(2)}
-              readOnly
-              aria-label="Сумма получения"
-            />
-            <span>EUR</span>
+            <input value={loadingRate ? "..." : result.toFixed(digits)} readOnly aria-label="Сумма получения" />
+            <span>{receiveCurrency}</span>
           </div>
         </div>
       </div>
 
       <div className="summary">
-        <div>
-          <span>Курс EuroFlow</span>
-          <b>
-            1 {currency} = {rate ? rate.rate.toFixed(6) : "..."} EUR
-          </b>
-        </div>
-        <div>
-          <span>Источник</span>
-          <b>{rate ? sourceLabel[rate.source] : "..."}</b>
-        </div>
+        <div><span>Курс EuroFlow</span><b>1 {currency} = {rate ? rate.rate.toFixed(6) : "..."} {receiveCurrency}</b></div>
+        <div><span>Источник</span><b>{rate ? sourceLabel[rate.source] : "..."}</b></div>
       </div>
 
       {rateError && <div className="error">{rateError}</div>}
@@ -179,18 +154,12 @@ export default function ExchangeCalculator() {
       <button
         className="btn btn-primary submit"
         disabled={!rate || loadingRate}
-        onClick={() =>
-          router.push(
-            `/exchange?currency=${currency}&amount=${amount}&receive=${result.toFixed(2)}`
-          )
-        }
+        onClick={() => router.push(`/exchange?currency=${currency}&receiveCurrency=${receiveCurrency}&amount=${amount}`)}
       >
         Продолжить →
       </button>
 
-      <p className="secure">
-        Выберите сумму, затем продолжите оформление обмена по шагам.
-      </p>
+      <p className="secure">Выберите сумму, затем продолжите оформление обмена по шагам.</p>
     </section>
   );
 }
